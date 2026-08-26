@@ -4,7 +4,12 @@ import { navItemsForRole } from '@/lib/nav';
 import { ROLE_LABEL } from '@/types/roles';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
-export default async function DashboardHomePage() {
+export default async function DashboardHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ denied?: string }>;
+}) {
+  const params = await searchParams;
   const user = await getSessionUser();
   const role = user?.role ?? null;
 
@@ -14,6 +19,11 @@ export default async function DashboardHomePage() {
 
   return (
     <div className="space-y-8">
+      {params.denied === '1' && (
+        <div className="rounded-lg border border-warning/50 bg-warning/10 p-3 text-sm text-foreground">
+          No tenés permisos para acceder a esa sección.
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           Hola{user?.email ? `, ${user.email.split('@')[0]}` : ''}
