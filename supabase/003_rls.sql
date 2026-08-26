@@ -1,0 +1,54 @@
+-- =====================================================================
+-- Row Level Security por ROL. La seguridad no vive solo en el frontend:
+-- Marcela (compras) no puede tocar ventas, Julian (ventas) no puede tocar
+-- proveedores/facturas, y el owner ve todo. Esto es la fuente de verdad.
+-- =====================================================================
+
+-- profiles ------------------------------------------------------------
+alter table public.profiles enable row level security;
+
+create policy profiles_select on public.profiles
+  for select to authenticated
+  using (id = auth.uid() or public.auth_role() = 'owner');
+
+create policy profiles_owner_write on public.profiles
+  for all to authenticated
+  using (public.auth_role() = 'owner')
+  with check (public.auth_role() = 'owner');
+
+-- Tablas del area COMPRAS (owner + compras) ---------------------------
+do $$
+declare
+  t text;
+  compras_tables text[] := array[
+    'proveedores', 'proveedor_alias', 'rubros', 'rubro_alias',
+    'facturas', 'factura_items', 'pagos', 'recibos', 'ordenes_compra',
+    'precios', 'vencimientos', 'avisos', 'revision_queue'
+  ];
+begin
+  foreach t in array compras_tables loop
+    execute format('alter table public.%I enable row level security;', t);
+    execute format(
+      'create policy %I on public.%I for all to authenticated '
+      || 'using (public.auth_role() in (''owner'', ''compras'')) '
+      || 'with check (public.auth_role() in (''owner'', ''compras''));',
+      t || '_compras_all', t
+    );
+  end loop;
+end $$;
+
+-- Tabla del area VENTAS (owner + ventas) ------------------------------
+alter table public.ventas enable row level security;
+create policy ventas_all on public.ventas
+  for all to authenticated
+  using (public.auth_role() in ('owner', 'ventas'))
+  with check (public.auth_role() in ('owner', 'ventas'));
+
+-- settings: todos leen; solo el owner edita ---------------------------
+alter table public.settings enable row level security;
+create policy settings_select on public.settings
+  for select to authenticated using (true);
+create policy settings_owner_write on public.settings
+  for all to authenticated
+  using (public.auth_role() = 'owner')
+  with check (public.auth_role() = 'owner');
