@@ -35,7 +35,8 @@ en silencio.
 
 ### Quién lo ve
 
-- **Admin** y **Compras** (Marcela). Ventas no.
+- **Admin** y **Compras** (Marcela): consulta y actualización manual.
+- **Ventas** (Julián): solo consulta (sin botón Actualizar).
 
 
 

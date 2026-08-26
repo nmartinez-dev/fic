@@ -12,8 +12,8 @@ accesos.
 ### Cada uno entra solo a lo que le toca
 
 - **Admin** — ve todas las secciones y puede gestionar usuarios.
-- **Compras** (Marcela) — proveedores, facturas, órdenes, categorías, vencimientos, avisos.
-- **Ventas** (Julián) — ventas y su dashboard.
+- **Compras** (Marcela) — facturas, órdenes, categorías, precios, revisión, avisos (campana).
+- **Ventas** (Julián) — precios y categorías en consulta.
 
 Si alguien intenta entrar a una sección que no le corresponde, el sistema lo
 redirige. Eso vale en la pantalla y también en los datos: la base no deja filtrar

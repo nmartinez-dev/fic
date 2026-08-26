@@ -8,8 +8,8 @@
 - Al hacer clic se abre un **resumen** con los avisos más recientes, un acceso rápido a Revisión si hay items pendientes, y un enlace al historial completo.
 - Ya **no hay pestaña Avisos** en el menú: todo entra por la campana; la bandeja completa queda en "Ver todos los avisos".
 - Los avisos se **actualizan solos** mientras usás el sistema (no hace falta recargar la página).
-- Al entrar al dashboard el sistema **genera avisos** por órdenes demoradas, vencimientos próximos/vencidos/sin recibo, y ventas duplicadas o rotas — según el rol de cada persona.
-- **Marcela y el admin** ven avisos de compras; **Julián** ve solo avisos de ventas con problemas de datos.
+- Al entrar al dashboard el sistema **genera avisos** por órdenes demoradas y vencimientos (compras), según ajustes.
+- **Marcela y el admin** ven avisos de compras; el rol ventas no usa la campana en esta entrega.
 
 
 
