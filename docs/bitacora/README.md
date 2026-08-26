@@ -10,3 +10,4 @@ problema del PDF con lo implementado y posibles mejoras futuras.
 | [003 — Facturas](./003-facturas.md) | Ingesta multiformato, revisión, pagos y gestión en pantalla |
 | [004 — Categorías](./004-categorias.md) | Unificación, matching en ingesta, gasto por categoría |
 | [005 — Órdenes](./005-ordenes.md) | Seguimiento de pedidos, avisos por demora, gestión en pantalla |
+| [006 — Notificaciones](./006-notificaciones.md) | Campana in-app, avisos por rol, sync automático |
