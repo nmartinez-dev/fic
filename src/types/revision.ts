@@ -1,4 +1,5 @@
 import type { ProveedorMatch } from '@/types/proveedor';
+import type { RubroMatch } from '@/types/rubro';
 
 export type TipoRevision =
   | 'proveedor_ambiguo'
@@ -25,6 +26,8 @@ export type RevisionItem = {
 export type RevisionPayload = {
   raw_nombre?: string;
   candidatos?: ProveedorMatch[];
+  raw_rubro?: string;
+  rubro_candidatos?: RubroMatch[];
   factura_original?: string;
   motivo?: string;
   camposFaltantes?: string[];

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 import type { RevisionItem } from '@/types/revision';
 import * as proveedorService from '@/services/proveedor-service';
+import * as rubroService from '@/services/rubro-service';
 
 export async function listPendientes(): Promise<RevisionItem[]> {
   const supabase = createClient();
@@ -100,4 +101,36 @@ export async function noEsDuplicado(item: RevisionItem): Promise<void> {
 export async function descartar(item: RevisionItem): Promise<void> {
   await marcarResuelto(item.id, { descartado: true }, 'descartado');
   if (item.entidad_id) await confirmarFacturaSiListo(item.entidad_id);
+}
+
+/** Asigna un rubro existente a la factura en revision. */
+export async function asignarRubro(
+  item: RevisionItem,
+  rubroId: string
+): Promise<void> {
+  const supabase = createClient();
+  if (item.entidad_id) {
+    await supabase
+      .from('facturas')
+      .update({ rubro_id: rubroId })
+      .eq('id', item.entidad_id);
+    if (item.payload.raw_rubro) {
+      await rubroService.addAliasRubro(rubroId, item.payload.raw_rubro);
+    }
+  }
+  await marcarResuelto(item.id, { rubro_id: rubroId });
+}
+
+/** Crea un rubro nuevo y lo asigna a la factura. */
+export async function crearYAsignarRubro(
+  item: RevisionItem,
+  nombre: string
+): Promise<void> {
+  const rubro = await rubroService.createRubro(nombre);
+  await asignarRubro(item, rubro.id);
+}
+
+/** Omite la asignacion de rubro (rubro es opcional). */
+export async function descartarRubro(item: RevisionItem): Promise<void> {
+  await marcarResuelto(item.id, { omitido: true }, 'descartado');
 }

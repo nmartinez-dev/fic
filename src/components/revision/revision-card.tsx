@@ -13,6 +13,9 @@ import {
   useConfirmarDuplicado,
   useNoEsDuplicado,
   useDescartarRevision,
+  useAsignarRubro,
+  useCrearYAsignarRubro,
+  useDescartarRubro,
 } from '@/hooks/use-revision';
 
 const TIPO_LABEL: Record<RevisionItem['tipo'], string> = {
@@ -28,16 +31,23 @@ export function RevisionCard({ item }: { item: RevisionItem }) {
   const confirmarDup = useConfirmarDuplicado();
   const noDup = useNoEsDuplicado();
   const descartar = useDescartarRevision();
+  const asignarRubro = useAsignarRubro();
+  const crearRubro = useCrearYAsignarRubro();
+  const descartarRubro = useDescartarRubro();
   const [nuevoNombre, setNuevoNombre] = useState(
     item.payload.raw_nombre ?? ''
   );
+  const [nuevoRubro, setNuevoRubro] = useState(item.payload.raw_rubro ?? '');
 
   const busy =
     asignar.isPending ||
     crear.isPending ||
     confirmarDup.isPending ||
     noDup.isPending ||
-    descartar.isPending;
+    descartar.isPending ||
+    asignarRubro.isPending ||
+    crearRubro.isPending ||
+    descartarRubro.isPending;
 
   const run = (p: Promise<unknown>, ok: string) =>
     toast.promise(p, { loading: 'Guardando...', success: ok, error: (e) => (e as Error).message });
@@ -190,18 +200,84 @@ export function RevisionCard({ item }: { item: RevisionItem }) {
 
       case 'rubro_ambiguo':
         return (
-          <Button
-            variant="outline"
-            disabled={busy}
-            onClick={() =>
-              run(
-                descartar.mutateAsync({ item, arg: undefined }),
-                'Marcado como revisado.'
-              )
-            }
-          >
-            Marcar como revisado
-          </Button>
+          <>
+            <p className="text-sm text-muted-foreground">
+              La factura trae el rubro{' '}
+              <span className="font-medium text-foreground">
+                &ldquo;{item.payload.raw_rubro ?? 'desconocido'}&rdquo;
+              </span>
+              . ¿A qué rubro corresponde? (La factura ya puede estar confirmada.)
+            </p>
+
+            {(item.payload.rubro_candidatos?.length ?? 0) > 0 && (
+              <div className="space-y-2">
+                {item.payload.rubro_candidatos!.map((c) => (
+                  <div
+                    key={c.rubro_id}
+                    className="flex items-center justify-between rounded-lg border px-3 py-2"
+                  >
+                    <span className="text-sm">
+                      {c.nombre}{' '}
+                      <span className="text-muted-foreground">
+                        ({Math.round(c.score * 100)}% de coincidencia)
+                      </span>
+                    </span>
+                    <Button
+                      size="sm"
+                      disabled={busy}
+                      onClick={() =>
+                        run(
+                          asignarRubro.mutateAsync({ item, arg: c.rubro_id }),
+                          `Asignado a ${c.nombre}.`
+                        )
+                      }
+                    >
+                      Es este
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-end gap-2">
+              <div className="flex-1 space-y-1">
+                <label className="text-xs text-muted-foreground">
+                  O crear un rubro nuevo
+                </label>
+                <Input
+                  value={nuevoRubro}
+                  onChange={(e) => setNuevoRubro(e.target.value)}
+                  placeholder="Nombre del rubro"
+                />
+              </div>
+              <Button
+                variant="outline"
+                disabled={busy || nuevoRubro.trim().length < 2}
+                onClick={() =>
+                  run(
+                    crearRubro.mutateAsync({ item, arg: nuevoRubro.trim() }),
+                    'Rubro creado y asignado.'
+                  )
+                }
+              >
+                Crear
+              </Button>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={busy}
+              onClick={() =>
+                run(
+                  descartarRubro.mutateAsync({ item, arg: undefined }),
+                  'Rubro omitido.'
+                )
+              }
+            >
+              Omitir
+            </Button>
+          </>
         );
 
       default: {

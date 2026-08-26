@@ -29,6 +29,19 @@ describe('extractFromText', () => {
     expect(r.numero).toBe('PC-777');
     expect(r.fecha).toBe('2026-08-20');
     expect(r.total).toBe(33333.33);
+    expect(r.rubroNombre).toBeNull();
     expect(r.camposFaltantes).toEqual([]);
+  });
+
+  it('extrae rubro cuando viene en el documento', () => {
+    const text = [
+      'Proveedor: Aceros SA',
+      'Rubro: Pinturas',
+      'Factura N°: A-1',
+      'Fecha: 01/01/2026',
+      'Total: 1000',
+    ].join('\n');
+    const r = extractFromText(text, 'excel');
+    expect(r.rubroNombre).toBe('Pinturas');
   });
 });

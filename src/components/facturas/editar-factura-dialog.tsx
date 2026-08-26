@@ -25,9 +25,11 @@ import {
 } from '@/components/ui/select';
 import { useUpdateFactura } from '@/hooks/use-facturas';
 import { useProveedores } from '@/hooks/use-proveedores';
+import { useRubrosConAlias } from '@/hooks/use-rubros';
 import type { FacturaConSaldo, UpdateFacturaInput } from '@/types/factura';
 
 const SIN_PROVEEDOR = '__none__';
+const SIN_RUBRO = '__none__';
 
 export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
   const [open, setOpen] = useState(false);
@@ -40,9 +42,11 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
   const [proveedorId, setProveedorId] = useState(
     factura.proveedor_id ?? SIN_PROVEEDOR
   );
+  const [rubroId, setRubroId] = useState(factura.rubro_id ?? SIN_RUBRO);
 
   const update = useUpdateFactura();
   const { data: proveedores } = useProveedores();
+  const { data: rubros } = useRubrosConAlias();
 
   useEffect(() => {
     if (!open) return;
@@ -51,6 +55,7 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
     setFechaVencimiento(factura.fecha_vencimiento ?? '');
     setTotal(String(factura.total));
     setProveedorId(factura.proveedor_id ?? SIN_PROVEEDOR);
+    setRubroId(factura.rubro_id ?? SIN_RUBRO);
   }, [open, factura]);
 
   const totalNum = Number(total);
@@ -63,6 +68,7 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
       fecha_vencimiento: fechaVencimiento || null,
       total: totalNum,
       proveedor_id: proveedorId === SIN_PROVEEDOR ? null : proveedorId,
+      rubro_id: rubroId === SIN_RUBRO ? null : rubroId,
     };
 
     toast.promise(update.mutateAsync({ id: factura.id, input }), {
@@ -94,8 +100,8 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
         <DialogHeader>
           <DialogTitle>Editar factura</DialogTitle>
           <DialogDescription>
-            Corregí número, fechas, total o proveedor. Los cambios recalculan el
-            saldo y la huella anti-duplicados.
+            Corregí número, fechas, total, proveedor o rubro. Los cambios
+            recalculan el saldo y la huella anti-duplicados.
           </DialogDescription>
         </DialogHeader>
 
@@ -149,6 +155,22 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
                 {(proveedores ?? []).map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label>Rubro</Label>
+            <Select value={rubroId} onValueChange={setRubroId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Sin rubro" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={SIN_RUBRO}>Sin rubro</SelectItem>
+                {(rubros ?? []).map((r) => (
+                  <SelectItem key={r.id} value={r.id}>
+                    {r.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>

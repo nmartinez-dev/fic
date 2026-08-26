@@ -20,6 +20,7 @@ export function useIngestFactura() {
       qc.invalidateQueries({ queryKey: queryKeys.facturasAll });
       qc.invalidateQueries({ queryKey: queryKeys.revisionQueue });
       qc.invalidateQueries({ queryKey: queryKeys.proveedores });
+      qc.invalidateQueries({ queryKey: queryKeys.rubros });
     },
   });
 }
@@ -37,6 +38,7 @@ export function useUpdateFactura() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.facturasAll });
       qc.invalidateQueries({ queryKey: queryKeys.proveedores });
+      qc.invalidateQueries({ queryKey: queryKeys.rubros });
     },
   });
 }

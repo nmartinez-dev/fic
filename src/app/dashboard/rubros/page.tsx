@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Tags, Plus, Merge } from 'lucide-react';
+import { Tags, Plus, Merge, Pencil, Trash2 } from 'lucide-react';
 import { FeatureIcon } from '@/components/ui/feature-icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,18 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { IconButton, IconTooltip, iconButtonClassName } from '@/components/ui/icon-button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
@@ -32,6 +44,8 @@ import {
   useCreateRubro,
   useAddAliasRubro,
   useMergeRubros,
+  useUpdateRubro,
+  useDeleteRubro,
 } from '@/hooks/use-rubros';
 import { formatCurrency } from '@/lib/format';
 import type { RubroConAlias } from '@/types/rubro';
@@ -116,9 +130,19 @@ export default function RubrosPage() {
 
 function RubroCard({ rubro }: { rubro: RubroConAlias }) {
   const [alias, setAlias] = useState('');
+  const [editOpen, setEditOpen] = useState(false);
+  const [nombre, setNombre] = useState(rubro.nombre);
   const addAlias = useAddAliasRubro();
+  const update = useUpdateRubro();
+  const eliminar = useDeleteRubro();
 
-  const submit = () => {
+  const refs = (rubro.facturas_count ?? 0) + (rubro.ventas_count ?? 0);
+  const deleteTooltip =
+    refs > 0
+      ? 'Eliminar — tiene facturas o ventas asociadas (fusioná antes)'
+      : 'Eliminar rubro';
+
+  const submitAlias = () => {
     const value = alias.trim();
     if (value.length < 2) return;
     toast.promise(addAlias.mutateAsync({ rubroId: rubro.id, alias: value }), {
@@ -131,10 +155,75 @@ function RubroCard({ rubro }: { rubro: RubroConAlias }) {
     });
   };
 
+  const submitEdit = () => {
+    const value = nombre.trim();
+    if (value.length < 2) return;
+    toast.promise(update.mutateAsync({ id: rubro.id, nombre: value }), {
+      loading: 'Guardando...',
+      success: () => {
+        setEditOpen(false);
+        return 'Rubro actualizado.';
+      },
+      error: (e) => (e as Error).message,
+    });
+  };
+
+  const confirmDelete = () => {
+    toast.promise(eliminar.mutateAsync(rubro.id), {
+      loading: 'Eliminando...',
+      success: 'Rubro eliminado.',
+      error: (e) => (e as Error).message,
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{rubro.nombre}</CardTitle>
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-base">{rubro.nombre}</CardTitle>
+          <div className="flex gap-1">
+            <IconButton
+              tooltip="Editar rubro"
+              onClick={() => {
+                setNombre(rubro.nombre);
+                setEditOpen(true);
+              }}
+            >
+              <Pencil className="h-4 w-4" />
+            </IconButton>
+            <AlertDialog>
+              <IconTooltip label={deleteTooltip}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className={iconButtonClassName}
+                    aria-label={deleteTooltip}
+                    disabled={refs > 0 || eliminar.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+              </IconTooltip>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Eliminar rubro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Se borrará <span className="font-medium">{rubro.nombre}</span>{' '}
+                    y sus variantes. Esta acción no se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={confirmDelete}>
+                    Eliminar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-2">
@@ -155,18 +244,48 @@ function RubroCard({ rubro }: { rubro: RubroConAlias }) {
             value={alias}
             onChange={(e) => setAlias(e.target.value)}
             placeholder="Otra forma de escribirlo"
-            onKeyDown={(e) => e.key === 'Enter' && submit()}
+            onKeyDown={(e) => e.key === 'Enter' && submitAlias()}
           />
           <Button
             variant="outline"
             size="sm"
             disabled={addAlias.isPending || alias.trim().length < 2}
-            onClick={submit}
+            onClick={submitAlias}
           >
             Agregar
           </Button>
         </div>
       </CardContent>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar rubro</DialogTitle>
+            <DialogDescription>
+              Cambiá el nombre canónico. Las variantes (alias) se mantienen.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <Label htmlFor={`rubro-edit-${rubro.id}`}>Nombre</Label>
+            <Input
+              id={`rubro-edit-${rubro.id}`}
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={submitEdit}
+              disabled={update.isPending || nombre.trim().length < 2}
+            >
+              Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

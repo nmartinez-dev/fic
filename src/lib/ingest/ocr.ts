@@ -5,6 +5,10 @@ import type { FacturaExtraida, OrigenFactura } from '@/types/factura';
 
 const facturaSchema = z.object({
   proveedorNombre: z.string().nullable(),
+  rubroNombre: z
+    .string()
+    .nullable()
+    .describe('Rubro o categoría de productos de la factura, si aparece'),
   numero: z.string().nullable(),
   fecha: z
     .string()
@@ -39,8 +43,9 @@ export async function extractWithAI(
               type: 'text',
               text:
                 'Extraé los datos de esta factura de un proveedor argentino. ' +
-                'Devolvé el nombre del proveedor, el número de factura, la fecha ' +
-                '(YYYY-MM-DD) y el importe total. Si algún dato no está, devolvé null.',
+                'Devolvé el nombre del proveedor, el rubro o categoría (si aparece), ' +
+                'el número de factura, la fecha (YYYY-MM-DD) y el importe total. ' +
+                'Si algún dato no está, devolvé null.',
             },
             { type: 'file', data: fileBytes, mediaType },
           ],

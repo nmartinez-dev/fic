@@ -1,11 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FacturaExtraida } from '@/types/factura';
 import type { ProveedorMatch } from '@/types/proveedor';
+import type { RubroMatch } from '@/types/rubro';
 import { buildHashDedup } from '@/lib/ingest/dedup';
-import { normalizeProveedorNombre } from '@/lib/ingest/extract';
+import { normalizeProveedorNombre, normalizeRubroNombre } from '@/lib/ingest/extract';
 import { addDays, formatISO } from 'date-fns';
 
-/** Score minimo de similitud para asignar proveedor sin intervencion humana. */
+/** Score minimo de similitud para asignar proveedor o rubro sin intervencion humana. */
 export const AUTO_MATCH_THRESHOLD = 0.55;
 
 export type IngestResultado = {
@@ -25,11 +26,18 @@ async function matchProveedor(
   return data as ProveedorMatch[];
 }
 
+async function matchRubro(db: Db, nombre: string): Promise<RubroMatch[]> {
+  const { data, error } = await db.rpc('match_rubro', { p_nombre: nombre });
+  if (error || !data) return [];
+  return data as RubroMatch[];
+}
+
 /**
  * Orquesta la ingesta de una factura ya extraida:
  *  1. dedupe (misma factura cargada dos veces)
  *  2. entity resolution del proveedor (pg_trgm)
- *  3. chequeo de datos criticos faltantes
+ *  3. entity resolution del rubro (pg_trgm, no bloqueante)
+ *  4. chequeo de datos criticos faltantes
  * Lo que no se resuelve con certeza NO se adivina: la factura queda
  * 'en_revision' y se crean items en la cola de revision.
  */
@@ -41,6 +49,9 @@ export async function ingestFactura(
   const motivosRevision: string[] = [];
   const nombreProveedor = extraida.proveedorNombre
     ? normalizeProveedorNombre(extraida.proveedorNombre)
+    : null;
+  const nombreRubro = extraida.rubroNombre
+    ? normalizeRubroNombre(extraida.rubroNombre)
     : null;
 
   const hash = buildHashDedup(
@@ -67,11 +78,11 @@ export async function ingestFactura(
 
   // 2) Entity resolution del proveedor.
   let proveedorId: string | null = null;
-  let candidatos: ProveedorMatch[] = [];
+  let candidatosProveedor: ProveedorMatch[] = [];
 
   if (nombreProveedor) {
-    candidatos = await matchProveedor(db, nombreProveedor);
-    const mejor = candidatos[0];
+    candidatosProveedor = await matchProveedor(db, nombreProveedor);
+    const mejor = candidatosProveedor[0];
     if (mejor && mejor.score >= AUTO_MATCH_THRESHOLD) {
       proveedorId = mejor.proveedor_id;
     } else {
@@ -81,7 +92,37 @@ export async function ingestFactura(
     motivosRevision.push('proveedor_ambiguo');
   }
 
-  // 3) Datos criticos faltantes.
+  // 3) Entity resolution del rubro (opcional; no bloquea confirmacion).
+  let rubroId: string | null = null;
+  let candidatosRubro: RubroMatch[] = [];
+  let rubroAmbiguoItem: {
+    tipo: 'rubro_ambiguo';
+    entidad: string;
+    entidad_id: string | null;
+    titulo: string;
+    payload: { raw_rubro: string | null | undefined; rubro_candidatos: RubroMatch[] };
+  } | null = null;
+
+  if (nombreRubro) {
+    candidatosRubro = await matchRubro(db, nombreRubro);
+    const mejorRubro = candidatosRubro[0];
+    if (mejorRubro && mejorRubro.score >= AUTO_MATCH_THRESHOLD) {
+      rubroId = mejorRubro.rubro_id;
+    } else {
+      rubroAmbiguoItem = {
+        tipo: 'rubro_ambiguo',
+        entidad: 'factura',
+        entidad_id: null,
+        titulo: `No se reconoció el rubro "${extraida.rubroNombre ?? 'desconocido'}"`,
+        payload: {
+          raw_rubro: extraida.rubroNombre,
+          rubro_candidatos: candidatosRubro,
+        },
+      };
+    }
+  }
+
+  // 4) Datos criticos faltantes.
   const criticos = extraida.camposFaltantes.filter(
     (c) => c === 'total' || c === 'numero'
   );
@@ -108,6 +149,7 @@ export async function ingestFactura(
     .insert({
       proveedor_id: proveedorId,
       raw_proveedor_nombre: nombreProveedor ?? extraida.proveedorNombre,
+      rubro_id: rubroId,
       numero: extraida.numero,
       fecha: extraida.fecha,
       fecha_vencimiento: fechaVencimiento,
@@ -125,22 +167,35 @@ export async function ingestFactura(
   }
   const facturaId = factura.id as string;
 
-  // Aprendizaje: si matcheo automatico, guardamos esta forma de escribir el
-  // nombre como alias (asi la proxima matchea directo).
+  // Aprendizaje: si matcheo automatico, guardamos alias para la proxima.
   if (estado === 'confirmada' && proveedorId && nombreProveedor) {
     await db
       .from('proveedor_alias')
       .insert({ proveedor_id: proveedorId, alias: nombreProveedor })
       .then(undefined, () => undefined);
   }
+  if (rubroId && nombreRubro) {
+    await db
+      .from('rubro_alias')
+      .insert({ rubro_id: rubroId, alias: nombreRubro })
+      .then(undefined, () => undefined);
+  }
 
-  // Items de la cola de revision.
+  // Items de la cola de revision (bloqueantes).
   for (const motivo of motivosRevision) {
     const item = buildRevisionItem(motivo, facturaId, extraida, {
-      candidatos,
+      candidatos: candidatosProveedor,
       duplicadoDe,
     });
     if (item) await db.from('revision_queue').insert(item as never);
+  }
+
+  // Rubro ambiguo: revision paralela, no bloquea confirmacion.
+  if (rubroAmbiguoItem) {
+    await db.from('revision_queue').insert({
+      ...rubroAmbiguoItem,
+      entidad_id: facturaId,
+    } as never);
   }
 
   return { facturaId, estado, motivosRevision };
@@ -159,7 +214,10 @@ function buildRevisionItem(
         entidad: 'factura',
         entidad_id: facturaId,
         titulo: `Posible duplicado de factura ${extraida.numero ?? ''}`.trim(),
-        payload: { factura_original: ctx.duplicadoDe, motivo: 'mismo número, proveedor y total' },
+        payload: {
+          factura_original: ctx.duplicadoDe,
+          motivo: 'mismo número, proveedor y total',
+        },
       };
     case 'proveedor_ambiguo':
       return {

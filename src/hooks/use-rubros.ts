@@ -30,7 +30,9 @@ function useRubroMutation<Args>(fn: (args: Args) => Promise<void>) {
 }
 
 export function useCreateRubro() {
-  return useRubroMutation<string>((nombre) => rubroService.createRubro(nombre));
+  return useRubroMutation<string>((nombre) =>
+    rubroService.createRubro(nombre).then(() => undefined)
+  );
 }
 
 export function useAddAliasRubro() {
@@ -43,4 +45,14 @@ export function useMergeRubros() {
   return useRubroMutation<{ origen: string; destino: string }>(({ origen, destino }) =>
     rubroService.mergeRubros(origen, destino)
   );
+}
+
+export function useUpdateRubro() {
+  return useRubroMutation<{ id: string; nombre: string }>(({ id, nombre }) =>
+    rubroService.updateRubro(id, nombre)
+  );
+}
+
+export function useDeleteRubro() {
+  return useRubroMutation<string>((id) => rubroService.deleteRubro(id));
 }
