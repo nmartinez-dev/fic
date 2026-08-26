@@ -89,8 +89,8 @@ export default function AvisosPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Avisos</h1>
           <p className="text-sm text-muted-foreground">
-            La bandeja del sistema. También podés ver el resumen en la campana
-            del header.
+            Historial completo de avisos. Para el día a día usá la campana del
+            header.
           </p>
         </div>
       </div>

@@ -9,7 +9,6 @@ import {
   CalendarClock,
   Inbox,
   TrendingUp,
-  Bell,
   Settings,
   Users,
 } from 'lucide-react';
@@ -33,7 +32,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/vencimientos', label: 'Vencimientos', icon: CalendarClock, area: 'vencimientos' },
   { href: '/dashboard/revision', label: 'Revisión', icon: Inbox, area: 'revision' },
   { href: '/dashboard/ventas', label: 'Ventas', icon: TrendingUp, area: 'ventas' },
-  { href: '/dashboard/avisos', label: 'Avisos', icon: Bell, area: 'avisos' },
   { href: '/dashboard/usuarios', label: 'Usuarios', icon: Users, area: 'usuarios' },
   { href: '/dashboard/settings', label: 'Ajustes', icon: Settings, area: 'settings' },
 ];
