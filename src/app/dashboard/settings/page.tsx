@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { PreciosCronField } from '@/components/settings/precios-cron-field';
 import { useSettings, useUpdateSettings } from '@/hooks/use-settings';
 
 export default function SettingsPage() {
@@ -50,7 +51,7 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Ajustes</h1>
           <p className="text-sm text-muted-foreground">
-            Parámetros que el admin puede tocar sin depender de nadie.
+            Parámetros que el administrador puede tocar sin depender de nadie.
           </p>
         </div>
       </div>
@@ -113,22 +114,7 @@ export default function SettingsPage() {
                 sin umbral).
               </p>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="s-cron">
-                Frecuencia de actualización de precios (cron)
-              </Label>
-              <Input
-                id="s-cron"
-                value={cron}
-                onChange={(e) => setCron(e.target.value)}
-                placeholder="0 6 * * *"
-              />
-              <p className="text-xs text-muted-foreground">
-                Referencia de frecuencia deseada. La actualización automática
-                corre una vez al día; desde Precios podés forzar una
-                actualización manual.
-              </p>
-            </div>
+            <PreciosCronField value={cron} onChange={setCron} />
             <Button onClick={submit} disabled={update.isPending}>
               Guardar ajustes
             </Button>
