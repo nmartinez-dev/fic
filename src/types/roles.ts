@@ -22,6 +22,7 @@ export type Area =
   | 'facturas'
   | 'ordenes'
   | 'rubros'
+  | 'precios'
   | 'vencimientos'
   | 'revision'
   | 'ventas'
@@ -35,6 +36,7 @@ const AREA_ACCESS: Record<Area, Role[]> = {
   facturas: ['admin', 'compras'],
   ordenes: ['admin', 'compras'],
   rubros: ['admin', 'compras'],
+  precios: ['admin', 'compras'],
   vencimientos: ['admin', 'compras'],
   revision: ['admin', 'compras'],
   ventas: ['admin', 'ventas'],

@@ -103,7 +103,9 @@ export default function SettingsPage() {
                 placeholder="0 6 * * *"
               />
               <p className="text-xs text-muted-foreground">
-                Expresión cron para el scraper de precios (iteración futura).
+                Referencia de frecuencia deseada. La actualización automática
+                corre una vez al día; desde Precios podés forzar una
+                actualización manual.
               </p>
             </div>
             <Button onClick={submit} disabled={update.isPending}>
