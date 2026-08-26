@@ -13,6 +13,7 @@ import {
   EstadoPagoBadge,
   OrigenBadge,
 } from '@/components/facturas/estado-badges';
+import { RegistrarPagoDialog } from '@/components/facturas/registrar-pago-dialog';
 
 export default function FacturasPage() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -82,9 +83,11 @@ export default function FacturasPage() {
                 <th className="px-4 py-3 font-medium">Proveedor</th>
                 <th className="px-4 py-3 font-medium">Fecha</th>
                 <th className="px-4 py-3 text-right font-medium">Total</th>
+                <th className="px-4 py-3 text-right font-medium">Saldo</th>
                 <th className="px-4 py-3 font-medium">Origen</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
                 <th className="px-4 py-3 font-medium">Pago</th>
+                <th className="px-4 py-3 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -92,7 +95,7 @@ export default function FacturasPage() {
                 <tr key={f.id} className="border-t">
                   <td className="px-4 py-3 font-medium">{f.numero ?? '—'}</td>
                   <td className="px-4 py-3">
-                    {f.proveedor?.nombre ?? (
+                    {f.proveedor_nombre ?? (
                       <span className="text-muted-foreground italic">
                         {f.raw_proveedor_nombre ?? 'Sin identificar'}
                       </span>
@@ -104,6 +107,9 @@ export default function FacturasPage() {
                   <td className="px-4 py-3 text-right tabular-nums">
                     {formatCurrency(f.total)}
                   </td>
+                  <td className="px-4 py-3 text-right tabular-nums">
+                    {f.estado === 'confirmada' ? formatCurrency(f.saldo) : '—'}
+                  </td>
                   <td className="px-4 py-3">
                     <OrigenBadge origen={f.origen} />
                   </td>
@@ -112,6 +118,13 @@ export default function FacturasPage() {
                   </td>
                   <td className="px-4 py-3">
                     <EstadoPagoBadge estado={f.estado_pago} />
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {f.estado === 'confirmada' && f.saldo > 0 ? (
+                      <RegistrarPagoDialog factura={f} />
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
