@@ -56,6 +56,5 @@ Pantalla aparte para resolver:
 ## Mejoras que se podrían sumar después
 
 - [ ] Guardar y mostrar **líneas de detalle** de cada factura (`factura_items`).
-- [ ] Matching de **rubros** en la ingesta (hoy el tipo existe en Revisión pero no se dispara).
 - [ ] Arrastrar y soltar archivos en la pantalla (hoy es selector de archivo).
 - [ ] Historial de cambios / auditoría de quién editó o eliminó una factura.
