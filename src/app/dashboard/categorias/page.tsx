@@ -47,10 +47,13 @@ import {
   useUpdateCategoria,
   useDeleteCategoria,
 } from '@/hooks/use-categorias';
+import { useAuth } from '@/contexts/auth-context';
 import { formatCurrency } from '@/lib/format';
 import type { CategoriaAlias, CategoriaConAlias } from '@/types/categoria';
 
 export default function CategoriasPage() {
+  const { user } = useAuth();
+  const canManage = user?.role === 'admin' || user?.role === 'compras';
   const { data: categorias, isLoading } = useCategoriasConAlias();
   const { data: gasto } = useGastoPorCategoria();
 
@@ -62,17 +65,21 @@ export default function CategoriasPage() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Categorías</h1>
             <p className="text-sm text-muted-foreground">
-              Una misma categoría escrita de varias formas se unifica en una sola.
-              Así el gasto por tipo de producto sale bien sumado.
+              {canManage
+                ? 'Unificá variantes, fusioná duplicados y consultá el gasto por categoría.'
+                : 'Consultá las categorías canónicas y sus variantes de escritura.'}
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <NuevaCategoriaButton />
-          <FusionarCategoriasDialog categorias={categorias ?? []} />
-        </div>
+        {canManage && (
+          <div className="flex gap-2">
+            <NuevaCategoriaButton />
+            <FusionarCategoriasDialog categorias={categorias ?? []} />
+          </div>
+        )}
       </div>
 
+      {canManage && (
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Gasto por categoría</CardTitle>
@@ -110,6 +117,7 @@ export default function CategoriasPage() {
           )}
         </CardContent>
       </Card>
+      )}
 
       {isLoading ? (
         <div className="space-y-2">
@@ -120,7 +128,7 @@ export default function CategoriasPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {(categorias ?? []).map((c) => (
-            <CategoriaCard key={c.id} categoria={c} />
+            <CategoriaCard key={c.id} categoria={c} canManage={canManage} />
           ))}
         </div>
       )}
@@ -128,7 +136,13 @@ export default function CategoriasPage() {
   );
 }
 
-function CategoriaCard({ categoria }: { categoria: CategoriaConAlias }) {
+function CategoriaCard({
+  categoria,
+  canManage,
+}: {
+  categoria: CategoriaConAlias;
+  canManage: boolean;
+}) {
   const [alias, setAlias] = useState('');
   const [editOpen, setEditOpen] = useState(false);
   const [nombre, setNombre] = useState(categoria.nombre);
@@ -184,6 +198,7 @@ function CategoriaCard({ categoria }: { categoria: CategoriaConAlias }) {
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-base">{categoria.nombre}</CardTitle>
+          {canManage && (
           <div className="flex gap-1">
             <IconButton
               tooltip="Editar categoría"
@@ -227,6 +242,7 @@ function CategoriaCard({ categoria }: { categoria: CategoriaConAlias }) {
               </AlertDialogContent>
             </AlertDialog>
           </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -237,10 +253,11 @@ function CategoriaCard({ categoria }: { categoria: CategoriaConAlias }) {
             </span>
           ) : (
             categoria.categoria_alias.map((a) => (
-              <VarianteChip key={a.id} variante={a} />
+              <VarianteChip key={a.id} variante={a} canManage={canManage} />
             ))
           )}
         </div>
+        {canManage && (
         <div className="flex items-end gap-2">
           <Input
             value={alias}
@@ -257,8 +274,10 @@ function CategoriaCard({ categoria }: { categoria: CategoriaConAlias }) {
             Agregar
           </Button>
         </div>
+        )}
       </CardContent>
 
+      {canManage && (
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -288,11 +307,18 @@ function CategoriaCard({ categoria }: { categoria: CategoriaConAlias }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      )}
     </Card>
   );
 }
 
-function VarianteChip({ variante }: { variante: CategoriaAlias }) {
+function VarianteChip({
+  variante,
+  canManage,
+}: {
+  variante: CategoriaAlias;
+  canManage: boolean;
+}) {
   const eliminar = useDeleteAliasCategoria();
 
   const confirmDelete = () => {
@@ -306,6 +332,7 @@ function VarianteChip({ variante }: { variante: CategoriaAlias }) {
   return (
     <div className="inline-flex items-center gap-0.5 rounded-md border px-1.5 py-0.5 text-xs">
       <span className="px-1">{variante.alias}</span>
+      {canManage && (
       <AlertDialog>
         <IconTooltip label="Eliminar variante">
           <AlertDialogTrigger asChild>
@@ -338,6 +365,7 @@ function VarianteChip({ variante }: { variante: CategoriaAlias }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      )}
     </div>
   );
 }

@@ -11,10 +11,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useAvisos, useResolverAviso } from '@/hooks/use-avisos';
 import { usePrecios, useSyncPrecios } from '@/hooks/use-precios';
+import { useAuth } from '@/contexts/auth-context';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { AVISO_PRECIO_SYNC_TITULO } from '@/types/precio';
 
 export default function PreciosPage() {
+  const { user } = useAuth();
+  const canSync = user?.role === 'admin' || user?.role === 'compras';
   const { data, isLoading, isError, error } = usePrecios();
   const { data: avisos } = useAvisos();
   const sync = useSyncPrecios();
@@ -73,7 +76,7 @@ export default function PreciosPage() {
         </div>
       </div>
 
-      {avisosFalloSync.length > 0 && (
+      {canSync && avisosFalloSync.length > 0 && (
         <div className="space-y-2">
           {avisosFalloSync.map((a) => (
             <div
@@ -130,6 +133,7 @@ export default function PreciosPage() {
             className="pl-9"
           />
         </div>
+        {canSync && (
         <Button
           onClick={handleSync}
           disabled={sync.isPending}
@@ -140,6 +144,7 @@ export default function PreciosPage() {
           />
           Actualizar ahora
         </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -154,9 +159,15 @@ export default function PreciosPage() {
         </div>
       ) : precios.length === 0 ? (
         <div className="rounded-xl border border-dashed py-16 text-center text-sm text-muted-foreground">
-          Todavía no hay precios cargados. Usá{' '}
-          <span className="font-medium text-foreground">Actualizar ahora</span>{' '}
-          para traer la lista del portal.
+          {canSync ? (
+            <>
+              Todavía no hay precios cargados. Usá{' '}
+              <span className="font-medium text-foreground">Actualizar ahora</span>{' '}
+              para traer la lista del portal.
+            </>
+          ) : (
+            <>Todavía no hay precios cargados en el sistema.</>
+          )}
         </div>
       ) : filtrados.length === 0 ? (
         <div className="rounded-xl border border-dashed py-16 text-center text-sm text-muted-foreground">

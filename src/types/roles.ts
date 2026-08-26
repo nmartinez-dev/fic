@@ -1,8 +1,8 @@
 /**
  * RBAC de Cordillera. Reemplaza el "usuario compartido" del sistema viejo:
- * - admin: administrador, ve y hace todo.
- * - compras: Marcela. Proveedores, facturas, ordenes de compra, vencimientos, recibos.
- * - ventas: Julian. Ventas y analitica del negocio.
+ * - admin: administrador, ve y hace todo lo entregado.
+ * - compras: Marcela. Facturas, órdenes, categorías, revisión, precios, avisos.
+ * - ventas: Julián. Consulta precios y categorías (sin módulo de ventas en nav).
  *
  * La fuente de verdad de los permisos es la base de datos (policies RLS por rol);
  * esto es el espejo en la app para navegacion y guards de UI/route.
@@ -35,12 +35,12 @@ const AREA_ACCESS: Record<Area, Role[]> = {
   proveedores: ['admin', 'compras'],
   facturas: ['admin', 'compras'],
   ordenes: ['admin', 'compras'],
-  categorias: ['admin', 'compras'],
-  precios: ['admin', 'compras'],
+  categorias: ['admin', 'compras', 'ventas'],
+  precios: ['admin', 'compras', 'ventas'],
   vencimientos: ['admin', 'compras'],
   revision: ['admin', 'compras'],
-  ventas: ['admin', 'ventas'],
-  avisos: ['admin', 'compras', 'ventas'],
+  ventas: ['admin'],
+  avisos: ['admin', 'compras'],
   settings: ['admin'],
   usuarios: ['admin'],
 };

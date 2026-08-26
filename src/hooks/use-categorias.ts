@@ -1,20 +1,29 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/auth-context';
 import { queryKeys } from '@/lib/query-keys';
 import * as categoriaService from '@/services/categoria-service';
 
 export function useCategoriasConAlias() {
+  const { user } = useAuth();
+  const soloConsulta = user?.role === 'ventas';
+
   return useQuery({
-    queryKey: queryKeys.categorias,
-    queryFn: categoriaService.listCategoriasConAlias,
+    queryKey: [...queryKeys.categorias, soloConsulta ? 'consulta' : 'full'],
+    queryFn: () =>
+      categoriaService.listCategoriasConAlias({ skipFacturas: soloConsulta }),
   });
 }
 
 export function useGastoPorCategoria() {
+  const { user } = useAuth();
+  const soloConsulta = user?.role === 'ventas';
+
   return useQuery({
     queryKey: [...queryKeys.categorias, 'gasto'],
     queryFn: categoriaService.listGastoPorCategoria,
+    enabled: !soloConsulta,
   });
 }
 

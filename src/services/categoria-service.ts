@@ -29,7 +29,9 @@ function mapCategoria(row: RubroRow): CategoriaConAlias {
   };
 }
 
-export async function listCategoriasConAlias(): Promise<CategoriaConAlias[]> {
+export async function listCategoriasConAlias(options?: {
+  skipFacturas?: boolean;
+}): Promise<CategoriaConAlias[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('rubros')
@@ -38,8 +40,10 @@ export async function listCategoriasConAlias(): Promise<CategoriaConAlias[]> {
   if (error) throw new Error(error.message);
 
   const [facturasMap, ventasMap] = await Promise.all([
-    countByCategoria('facturas'),
-    countByCategoria('ventas'),
+    options?.skipFacturas
+      ? Promise.resolve(new Map<string, number>())
+      : countByCategoria('facturas'),
+    countByCategoria('ventas').catch(() => new Map<string, number>()),
   ]);
 
   return ((data ?? []) as unknown as RubroRow[]).map((r) => ({

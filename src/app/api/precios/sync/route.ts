@@ -7,7 +7,10 @@ export const maxDuration = 60;
 
 export async function POST() {
   try {
-    await requireArea('precios');
+    const sessionUser = await requireArea('precios');
+    if (sessionUser.role === 'ventas') {
+      throw new AuthorizationError('No tenés permiso para actualizar precios.', 403);
+    }
     const db = createAdminClient();
     const result = await syncPrecios(db);
     return NextResponse.json(result);
