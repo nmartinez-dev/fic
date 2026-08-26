@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="Cordillera">
+  <rect width="32" height="32" rx="8" fill="#EA580C"/>
+  <path
+    fill="#FFFFFF"
+    d="M3 24 9 12 13 18 17 9 21 15 25 7 29 24Z"
+  />
+</svg>
