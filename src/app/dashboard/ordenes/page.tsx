@@ -355,6 +355,7 @@ function NuevaOrdenDialog() {
           </div>
           <OrdenArchivoField
             id="oc-archivo"
+            file={archivo}
             onFileChange={setArchivo}
           />
         </div>

@@ -174,7 +174,8 @@ export function EditarOrdenDialog({ orden }: { orden: OrdenCompraConProveedor })
           </div>
           <OrdenArchivoField
             id={`orden-archivo-edit-${orden.id}`}
-            tieneArchivo={!!orden.archivo_path}
+            file={archivo}
+            archivoPath={orden.archivo_path}
             onFileChange={setArchivo}
           />
         </div>
