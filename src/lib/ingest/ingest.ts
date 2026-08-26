@@ -1,8 +1,8 @@
-import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FacturaExtraida } from '@/types/factura';
 import type { ProveedorMatch } from '@/types/proveedor';
 import { buildHashDedup } from '@/lib/ingest/dedup';
+import { normalizeProveedorNombre } from '@/lib/ingest/extract';
 import { addDays, formatISO } from 'date-fns';
 
 /** Score minimo de similitud para asignar proveedor sin intervencion humana. */
@@ -39,8 +39,12 @@ export async function ingestFactura(
   archivoPath: string | null
 ): Promise<IngestResultado> {
   const motivosRevision: string[] = [];
+  const nombreProveedor = extraida.proveedorNombre
+    ? normalizeProveedorNombre(extraida.proveedorNombre)
+    : null;
+
   const hash = buildHashDedup(
-    extraida.proveedorNombre,
+    nombreProveedor,
     extraida.numero,
     extraida.total
   );
@@ -64,8 +68,9 @@ export async function ingestFactura(
   // 2) Entity resolution del proveedor.
   let proveedorId: string | null = null;
   let candidatos: ProveedorMatch[] = [];
-  if (extraida.proveedorNombre) {
-    candidatos = await matchProveedor(db, extraida.proveedorNombre);
+
+  if (nombreProveedor) {
+    candidatos = await matchProveedor(db, nombreProveedor);
     const mejor = candidatos[0];
     if (mejor && mejor.score >= AUTO_MATCH_THRESHOLD) {
       proveedorId = mejor.proveedor_id;
@@ -102,7 +107,7 @@ export async function ingestFactura(
     .from('facturas')
     .insert({
       proveedor_id: proveedorId,
-      raw_proveedor_nombre: extraida.proveedorNombre,
+      raw_proveedor_nombre: nombreProveedor ?? extraida.proveedorNombre,
       numero: extraida.numero,
       fecha: extraida.fecha,
       fecha_vencimiento: fechaVencimiento,
@@ -122,10 +127,10 @@ export async function ingestFactura(
 
   // Aprendizaje: si matcheo automatico, guardamos esta forma de escribir el
   // nombre como alias (asi la proxima matchea directo).
-  if (estado === 'confirmada' && proveedorId && extraida.proveedorNombre) {
+  if (estado === 'confirmada' && proveedorId && nombreProveedor) {
     await db
       .from('proveedor_alias')
-      .insert({ proveedor_id: proveedorId, alias: extraida.proveedorNombre })
+      .insert({ proveedor_id: proveedorId, alias: nombreProveedor })
       .then(undefined, () => undefined);
   }
 
