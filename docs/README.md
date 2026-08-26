@@ -16,7 +16,8 @@ resumido.
 | [`prueba-tecnica-fde.pdf`](prueba-tecnica-fde.pdf) | Referencia | Enunciado original del cliente |
 
 **Arquitectura** responde *cómo funciona*. **Criterios y decisiones** responde
-*qué entregamos y por qué*. **Bitácora** responde *cómo fue avanzando cada
+*qué entregamos, por qué y cómo abordamos cada problema del PDF* (incluidos los
+que quedaron fuera del menú). **Bitácora** responde *cómo fue avanzando cada
 módulo* en el tiempo.
 
 No hay solapamiento obligatorio: conviene empezar por criterios si evaluás la

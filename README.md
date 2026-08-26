@@ -37,13 +37,26 @@ npm install
 cp .env.local.example .env.local
 ```
 
-Variables mínimas: Supabase. Opcionales: `AI_GATEWAY_API_KEY` (OCR),
-`PORTAL_URL` / `PORTAL_USER` / `PORTAL_PASSWORD` (precios).
+Completar `.env.local` con las claves del proyecto Supabase. Opcionales:
+`AI_GATEWAY_API_KEY` (OCR), `PORTAL_*` (precios; valores de prueba en
+`.env.local.example`).
+
+### Base de datos
+
+1. Crear un proyecto en [supabase.com](https://supabase.com).
+2. En **SQL Editor**, ejecutar las migraciones de `supabase/` **en orden numérico**
+   (`001` → `017`). Cada archivo es idempotente en su dominio; el orden importa.
+3. Copiar **Project URL**, **anon key** y **service role key** al `.env.local`.
+4. En **Storage**, crear buckets privados `facturas` y `ordenes` (adjuntos de
+   facturas y órdenes).
+5. Ejecutar el seed:
 
 ```bash
 npm run seed
 npm run dev
 ```
+
+Detalle de tablas, buckets y variables: [`docs/arquitectura.md`](docs/arquitectura.md).
 
 [http://localhost:3000](http://localhost:3000) — clave **`cordillera2026`**
 
@@ -66,10 +79,14 @@ Cron (precios)
 
 ## Documentación
 
+**Documentación técnica de la prueba** (criterio, decisiones y abordaje por
+problema del PDF): [`docs/criterios-y-decisiones.md`](docs/criterios-y-decisiones.md)
++ [`docs/arquitectura.md`](docs/arquitectura.md) + [`docs/bitacora/`](docs/bitacora/).
+
 Índice completo en [`docs/README.md`](docs/README.md).
 
 | Documento | Para qué |
 | --- | --- |
+| [`docs/criterios-y-decisiones.md`](docs/criterios-y-decisiones.md) | Por qué se construyó así; mapa de los 12 problemas |
 | [`docs/arquitectura.md`](docs/arquitectura.md) | Cómo está construido |
-| [`docs/criterios-y-decisiones.md`](docs/criterios-y-decisiones.md) | Por qué se construyó así |
-| [`docs/bitacora/`](docs/bitacora/) | Qué se fue entregando, por feature |
+| [`docs/bitacora/`](docs/bitacora/) | Qué se fue entregando, feature a feature |

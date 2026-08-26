@@ -63,8 +63,8 @@ Al priorizar módulos se usaron estos criterios, en orden aproximado de peso:
 | **Roles y accesos** | 10 | Requisito transversal; sustituye usuario compartido |
 
 **Parcial — Ajustes (problema 9):** umbrales, días de aviso en órdenes y
-preferencia de horario para precios. Suficiente para demostrar control admin sin
-productizar recibos ni un panel de control exhaustivo.
+preferencia de horario para precios. Detalle en
+[`bitacora/007-ajustes.md`](bitacora/007-ajustes.md).
 
 ### Fuera del scope de entrega
 
@@ -128,10 +128,60 @@ Referencia rápida de los doce problemas del cliente y su estado en esta entrega
 | 6 | Órdenes de compra | Entregado |
 | 7 | Categorías | Entregado |
 | 8 | Avisos | Entregado |
-| 9 | Control / ajustes | Parcial (settings admin) |
+| 9 | Control / ajustes | Parcial — [bitácora 007](bitacora/007-ajustes.md) |
 | 10 | Accesos / roles | Entregado |
 | 11 | Calendario tiempo real | Fuera de scope |
 | 12 | Recibos | Fuera de scope |
+
+---
+
+## Abordaje de problemas no entregados como módulo
+
+El PDF pide honestidad sobre lo que quedó afuera. Estos cuatro problemas **no
+tienen pantalla en el cierre**, pero sí criterio de abordaje — total o parcial.
+
+### #3 — Ventas / calidad de datos
+
+**Interpretación:** dashboard unificado con evolución de facturación, precios,
+stock y detección de ventas duplicadas o rotas.
+
+**Decisión:** el dolor urgente del relato es **compras e ingesta**; un dashboard
+de ventas compite por tiempo y depende de datos upstream limpios. El modelo de
+ventas existe en el repo, pero no se productizó en el menú. El enfoque elegido
+habría sido: marcar duplicados por código de venta y excluirlos de agregados,
+nunca sumarlos silenciosamente — alineado al principio “avisar en vez de adivinar”.
+
+### #4 — Proveedores / cuenta corriente
+
+**Interpretación:** ABM con mail y CUIT, y vista “compré / pagué / debo” por
+proveedor.
+
+**Decisión:** el valor inmediato está en **no asignar mal al cargar facturas**.
+Implementamos entity resolution en ingesta (`match_proveedor`, aliases aprendidos
+en Revisión) y cuenta corriente vía **facturas + pagos + saldo** en la pantalla
+de Facturas. Una pantalla dedicada de proveedores sumaría poco a la demo sin
+cerrar antes el pipeline de ingesta.
+
+### #11 — Calendario de vencimientos en tiempo real
+
+**Interpretación:** calendario visual, alta/reprogramación de vencimientos y sync
+instantáneo entre usuarios.
+
+**Decisión:** es un módulo completo (UI de calendario + Realtime + reglas de
+negocio). Preferimos profundidad en facturas y órdenes. Parte de la infraestructura
+(existe en base) no se expone en el menú de entrega.
+
+### #12 — Recibos
+
+**Interpretación:** generar comprobante de recepción antes del vencimiento y avisar
+si falta.
+
+**Decisión:** depende del calendario de vencimientos (#11). Sin ese módulo
+cerrado, productizar recibos en PDF sería una pantalla huérfana. Los avisos
+entregados cubren órdenes, precios y revisión — el circuito recibo–vencimiento
+queda para una iteración siguiente.
+
+**Problema #9 (parcial):** ver bitácora [007 — Ajustes](./bitacora/007-ajustes.md).
 
 ---
 

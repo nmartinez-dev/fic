@@ -184,7 +184,20 @@ Route Handlers para: ingesta y CRUD de facturas, archivos de facturas/órdenes, 
 
 ## Despliegue y calidad
 
-App en Vercel; cron de precios en UTC (ver `vercel.json`). Migraciones SQL en Supabase en orden numérico.
+App en Vercel; cron de precios en UTC (ver `vercel.json`).
+
+### Base de datos (Supabase)
+
+Las migraciones viven en `supabase/` numeradas del `001` al `017`. En un proyecto
+nuevo:
+
+1. SQL Editor → ejecutar cada archivo en orden.
+2. Verificar buckets privados **facturas** y **ordenes** en Storage (crearlos en el
+   dashboard si no existen; no hay migración SQL para ellos).
+3. Configurar las variables de entorno en Vercel (mismas que local + `CRON_SECRET`).
+
+Para desarrollo local: crear proyecto, migrar, `npm run seed`, `npm run dev`. Pasos
+resumidos en el [README del repo](../README.md).
 
 ```bash
 npm run typecheck

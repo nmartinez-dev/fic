@@ -21,6 +21,7 @@ Para el *cómo* técnico → [`../arquitectura.md`](../arquitectura.md).
 | [004 — Categorías](./004-categorias.md) | Unificación, matching en ingesta, gasto por rubro | 7 |
 | [005 — Órdenes](./005-ordenes.md) | Seguimiento de pedidos, avisos por demora | 6 |
 | [006 — Notificaciones](./006-notificaciones.md) | Campana in-app, avisos por rol, sync automático | 8 |
+| [007 — Ajustes](./007-ajustes.md) | Parámetros admin, umbrales y horario de precios | 9 |
 
 Las entradas siguen el orden en que se fueron cerrando módulos; el número no
 coincide con el del enunciado del PDF.
