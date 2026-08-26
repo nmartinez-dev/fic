@@ -15,7 +15,7 @@ export function useSyncPrecios() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: precioService.syncPreciosNow,
-    onSuccess: () => {
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: queryKeys.precios });
       qc.invalidateQueries({ queryKey: queryKeys.avisos });
     },

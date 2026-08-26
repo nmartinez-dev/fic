@@ -1,20 +1,33 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
-import { Tag, RefreshCw, Search } from 'lucide-react';
+import { Tag, RefreshCw, Search, AlertTriangle } from 'lucide-react';
 import { FeatureIcon } from '@/components/ui/feature-icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { useAvisos, useResolverAviso } from '@/hooks/use-avisos';
 import { usePrecios, useSyncPrecios } from '@/hooks/use-precios';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { AVISO_PRECIO_SYNC_TITULO } from '@/types/precio';
 
 export default function PreciosPage() {
   const { data, isLoading, isError, error } = usePrecios();
+  const { data: avisos } = useAvisos();
   const sync = useSyncPrecios();
+  const resolver = useResolverAviso();
   const [q, setQ] = useState('');
+
+  const avisosFalloSync = useMemo(
+    () =>
+      (avisos ?? []).filter(
+        (a) => a.estado === 'pendiente' && a.titulo === AVISO_PRECIO_SYNC_TITULO
+      ),
+    [avisos]
+  );
 
   const precios = data?.precios ?? [];
   const fechaLista = data?.fechaLista ?? null;
@@ -59,6 +72,51 @@ export default function PreciosPage() {
           </p>
         </div>
       </div>
+
+      {avisosFalloSync.length > 0 && (
+        <div className="space-y-2">
+          {avisosFalloSync.map((a) => (
+            <div
+              key={a.id}
+              className="flex flex-col gap-3 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 sm:flex-row sm:items-start sm:justify-between"
+            >
+              <div className="flex gap-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
+                <div className="space-y-1 text-sm">
+                  <p className="font-medium text-foreground">{a.titulo}</p>
+                  {a.cuerpo && (
+                    <p className="text-muted-foreground">{a.cuerpo}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {formatDate(a.fecha)} · También visible en{' '}
+                    <Link
+                      href="/dashboard/avisos"
+                      className="font-medium text-foreground underline-offset-4 hover:underline"
+                    >
+                      Avisos
+                    </Link>
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="shrink-0 self-start"
+                disabled={resolver.isPending}
+                onClick={() =>
+                  toast.promise(resolver.mutateAsync(a.id), {
+                    loading: 'Guardando…',
+                    success: 'Aviso marcado como resuelto.',
+                    error: (e) => (e as Error).message,
+                  })
+                }
+              >
+                Marcar resuelto
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full max-w-md">

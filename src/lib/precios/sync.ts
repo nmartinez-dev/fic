@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { todayISO } from '@/lib/format';
 import { fetchPreciosFromPortal } from '@/lib/precios/portal';
+import { AVISO_PRECIO_SYNC_TITULO } from '@/types/precio';
 
 export type SyncPreciosResult = {
   total: number;
@@ -14,7 +15,7 @@ async function crearAvisoFallo(
   const hoy = todayISO();
   await db.from('avisos').insert({
     tipo: 'sistema',
-    titulo: 'No se pudieron actualizar los precios',
+    titulo: AVISO_PRECIO_SYNC_TITULO,
     cuerpo: mensaje,
     fecha: hoy,
     estado: 'pendiente',

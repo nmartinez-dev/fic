@@ -1,3 +1,5 @@
+export const AVISO_PRECIO_SYNC_TITULO = 'No se pudieron actualizar los precios';
+
 export type Precio = {
   id: string;
   proveedor_id: string | null;
