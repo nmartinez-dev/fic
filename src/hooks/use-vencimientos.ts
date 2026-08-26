@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { syncAvisosVencimientos } from '@/lib/vencimientos/sync-avisos';
 import { queryKeys } from '@/lib/query-keys';
 import * as vencimientoService from '@/services/vencimiento-service';
 import * as reciboService from '@/services/recibo-service';
@@ -47,6 +48,17 @@ export function useVencimientosRealtime(): boolean {
   return live;
 }
 
+export function useSyncAvisosVencimientos() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => syncAvisosVencimientos(createClient()),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.avisos });
+      qc.invalidateQueries({ queryKey: queryKeys.avisosPendientes });
+    },
+  });
+}
+
 function useVencimientoMutation<Args>(fn: (args: Args) => Promise<unknown>) {
   const qc = useQueryClient();
   return useMutation({
@@ -69,9 +81,16 @@ export function useMoverVencimiento() {
 }
 
 export function useSetEstadoVencimiento() {
-  return useVencimientoMutation<{ id: string; estado: EstadoVencimiento }>(
-    ({ id, estado }) => vencimientoService.setEstadoVencimiento(id, estado)
-  );
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, estado }: { id: string; estado: EstadoVencimiento }) =>
+      vencimientoService.setEstadoVencimiento(id, estado),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.vencimientosAll });
+      qc.invalidateQueries({ queryKey: queryKeys.avisos });
+      qc.invalidateQueries({ queryKey: queryKeys.avisosPendientes });
+    },
+  });
 }
 
 export function useGenerarRecibo() {

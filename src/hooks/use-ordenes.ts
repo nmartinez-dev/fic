@@ -20,6 +20,7 @@ export function useSyncAvisosOrdenes() {
     mutationFn: () => syncAvisosOrdenesPendientes(createClient()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.avisos });
+      qc.invalidateQueries({ queryKey: queryKeys.avisosPendientes });
     },
   });
 }
@@ -52,6 +53,7 @@ export function useDeleteOrden() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.ordenesCompraAll });
       qc.invalidateQueries({ queryKey: queryKeys.avisos });
+      qc.invalidateQueries({ queryKey: queryKeys.avisosPendientes });
     },
   });
 }
@@ -75,6 +77,7 @@ export function useUpdateEstadoOrden() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.ordenesCompraAll });
       qc.invalidateQueries({ queryKey: queryKeys.avisos });
+      qc.invalidateQueries({ queryKey: queryKeys.avisosPendientes });
     },
   });
 }

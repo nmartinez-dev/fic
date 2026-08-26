@@ -40,7 +40,7 @@ const AREA_ACCESS: Record<Area, Role[]> = {
   vencimientos: ['admin', 'compras'],
   revision: ['admin', 'compras'],
   ventas: ['admin', 'ventas'],
-  avisos: ['admin', 'compras'],
+  avisos: ['admin', 'compras', 'ventas'],
   settings: ['admin'],
   usuarios: ['admin'],
 };

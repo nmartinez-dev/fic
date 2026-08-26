@@ -18,6 +18,7 @@ export function useSyncPrecios() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: queryKeys.precios });
       qc.invalidateQueries({ queryKey: queryKeys.avisos });
+      qc.invalidateQueries({ queryKey: queryKeys.avisosPendientes });
     },
   });
 }

@@ -1,4 +1,9 @@
-export type TipoAviso = 'vencimiento' | 'reclamo' | 'sistema' | 'orden';
+export type TipoAviso =
+  | 'vencimiento'
+  | 'reclamo'
+  | 'sistema'
+  | 'orden'
+  | 'venta';
 export type EstadoAviso = 'pendiente' | 'resuelto';
 
 export type Aviso = {
@@ -8,6 +13,8 @@ export type Aviso = {
   cuerpo: string | null;
   proveedor_id: string | null;
   orden_id: string | null;
+  vencimiento_id: string | null;
+  venta_id: string | null;
   fecha: string;
   estado: EstadoAviso;
   resuelto_por: string | null;

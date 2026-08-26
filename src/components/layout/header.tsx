@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
+import { NotificationsMenu } from '@/components/notificaciones/notifications-menu';
 import { ChangePasswordDialog } from '@/components/layout/change-password-dialog';
 import { Button } from '@/components/ui/button';
 import { IconTooltip } from '@/components/ui/icon-button';
@@ -54,6 +55,7 @@ export function Header() {
               {ROLE_LABEL[user.role]}
             </Badge>
           )}
+          <NotificationsMenu />
           <ThemeToggle />
           <DropdownMenu>
             <IconTooltip label="Cuenta">

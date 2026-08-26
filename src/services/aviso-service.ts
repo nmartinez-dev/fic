@@ -12,6 +12,18 @@ export async function listAvisos(): Promise<Aviso[]> {
   return (data ?? []) as Aviso[];
 }
 
+export async function listAvisosPendientes(limit = 10): Promise<Aviso[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('avisos')
+    .select('*')
+    .eq('estado', 'pendiente')
+    .order('fecha', { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Aviso[];
+}
+
 export async function resolverAviso(id: string): Promise<void> {
   const supabase = createClient();
   const {

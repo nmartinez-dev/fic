@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Bell, CheckCircle2, RotateCcw } from 'lucide-react';
@@ -10,36 +9,18 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAvisos, useResolverAviso, useReabrirAviso } from '@/hooks/use-avisos';
-import { useSyncAvisosOrdenes } from '@/hooks/use-ordenes';
+import {
+  hrefForAviso,
+  TIPO_CLS,
+  TIPO_LABEL,
+} from '@/lib/notificaciones/aviso-meta';
 import { formatDate } from '@/lib/format';
-import type { Aviso, TipoAviso } from '@/types/aviso';
-
-const TIPO_LABEL: Record<TipoAviso, string> = {
-  vencimiento: 'Vencimiento',
-  reclamo: 'Reclamo',
-  sistema: 'Sistema',
-  orden: 'Orden pendiente',
-};
-
-const TIPO_CLS: Record<TipoAviso, string> = {
-  vencimiento: 'bg-warning/15 text-warning',
-  reclamo: 'bg-danger/15 text-danger',
-  sistema: 'bg-muted text-muted-foreground',
-  orden: 'bg-warning/15 text-warning',
-};
+import type { Aviso } from '@/types/aviso';
 
 export default function AvisosPage() {
   const { data: avisos, isLoading } = useAvisos();
   const resolver = useResolverAviso();
   const reabrir = useReabrirAviso();
-  const syncAvisos = useSyncAvisosOrdenes();
-  const synced = useRef(false);
-
-  useEffect(() => {
-    if (synced.current) return;
-    synced.current = true;
-    syncAvisos.mutate();
-  }, [syncAvisos]);
 
   const pendientes = (avisos ?? []).filter((a) => a.estado === 'pendiente');
   const resueltos = (avisos ?? []).filter((a) => a.estado === 'resuelto');
@@ -72,13 +53,9 @@ export default function AvisosPage() {
             {formatDate(a.fecha)}
           </span>
           <div className="flex flex-wrap gap-2">
-            {a.tipo === 'orden' && a.orden_id && (
-              <Button asChild size="sm" variant="outline">
-                <Link href="/dashboard/ordenes?filtro=pendientes">
-                  Ver órdenes
-                </Link>
-              </Button>
-            )}
+            <Button asChild size="sm" variant="outline">
+              <Link href={hrefForAviso(a)}>Ir a la pantalla</Link>
+            </Button>
             {a.estado === 'pendiente' ? (
               <Button
                 size="sm"
@@ -112,8 +89,8 @@ export default function AvisosPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Avisos</h1>
           <p className="text-sm text-muted-foreground">
-            La bandeja del sistema, acá adentro. Lo pendiente queda a la vista
-            hasta que alguien lo resuelve.
+            La bandeja del sistema. También podés ver el resumen en la campana
+            del header.
           </p>
         </div>
       </div>
