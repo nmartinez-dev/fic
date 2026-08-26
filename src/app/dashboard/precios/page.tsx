@@ -41,41 +41,47 @@ export default function PreciosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <FeatureIcon icon={Tag} size="md" />
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Precios</h1>
-            <p className="text-sm text-muted-foreground">
-              Lista del proveedor grande, actualizada desde el portal.
-              {fechaLista && (
-                <>
-                  {' '}
-                  Última lista:{' '}
-                  <span className="font-medium text-foreground">
-                    {formatDate(fechaLista)}
-                  </span>
-                </>
-              )}
-            </p>
-          </div>
+      <div className="flex items-center gap-3">
+        <FeatureIcon icon={Tag} size="md" />
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Precios</h1>
+          <p className="text-sm text-muted-foreground">
+            Lista del proveedor grande, actualizada desde el portal.
+            {fechaLista && (
+              <>
+                {' '}
+                Última lista:{' '}
+                <span className="font-medium text-foreground">
+                  {formatDate(fechaLista)}
+                </span>
+              </>
+            )}
+          </p>
         </div>
-        <Button onClick={handleSync} disabled={sync.isPending}>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full max-w-md">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex w-9 items-center justify-center text-muted-foreground">
+            <Search className="h-4 w-4" />
+          </span>
+          <Input
+            placeholder="Buscar por código, descripción o categoría…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Button
+          onClick={handleSync}
+          disabled={sync.isPending}
+          className="shrink-0 sm:ml-auto"
+        >
           <RefreshCw
             className={`mr-2 h-4 w-4 ${sync.isPending ? 'animate-spin' : ''}`}
           />
           Actualizar ahora
         </Button>
-      </div>
-
-      <div className="relative max-w-md">
-        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por código, descripción o categoría…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="pl-9"
-        />
       </div>
 
       {isLoading ? (
