@@ -14,7 +14,7 @@ const inter = Inter({
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 const description =
-  'Sistema de gestión de Ferretería Industrial Cordillera: proveedores, facturas, vencimientos y ventas, claros y en un solo lugar.';
+  'Plataforma de gestión operativa para Ferretería Industrial Cordillera: facturación, órdenes de compra, precios y categorías.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),

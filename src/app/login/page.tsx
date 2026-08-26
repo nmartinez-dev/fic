@@ -8,13 +8,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
-import { Boxes, PackageCheck, CalendarClock, ShieldCheck } from 'lucide-react';
+import { FileText, ClipboardList, Tag, ShieldCheck } from 'lucide-react';
 
 const features = [
-  { icon: Boxes, text: 'Proveedores, precios y stock en un solo lugar' },
-  { icon: PackageCheck, text: 'Facturas ordenadas, sin duplicados' },
-  { icon: CalendarClock, text: 'Vencimientos y recibos siempre a la vista' },
-  { icon: ShieldCheck, text: 'Cada uno entra solo a lo que le toca' },
+  {
+    icon: FileText,
+    text: 'Ingesta y consolidación de facturas con revisión de excepciones',
+  },
+  {
+    icon: ClipboardList,
+    text: 'Seguimiento de órdenes de compra y alertas operativas',
+  },
+  {
+    icon: Tag,
+    text: 'Sincronización de listas de precios del proveedor',
+  },
+  {
+    icon: ShieldCheck,
+    text: 'Permisos por rol con control en base de datos',
+  },
 ];
 
 export default function LoginPage() {
@@ -61,13 +73,14 @@ export default function LoginPage() {
         </div>
         <div className="space-y-6">
           <h2 className="text-4xl font-bold leading-tight lg:text-5xl">
-            El negocio,
+            Gestión operativa
             <br />
-            claro de un vistazo
+            de compras
           </h2>
           <p className="max-w-md text-lg text-primary-foreground/85">
-            Todo lo que hoy está a mano y en cuadernos, ordenado en un solo
-            sistema.
+            Facturación, pedidos, precios y categorías en una plataforma
+            unificada, con trazabilidad por usuario y resolución guiada de
+            inconsistencias.
           </p>
           <ul className="space-y-3 pt-4">
             {features.map((feature) => (
@@ -81,15 +94,17 @@ export default function LoginPage() {
           </ul>
         </div>
         <p className="text-sm text-primary-foreground/60">
-          &copy; {new Date().getFullYear()} · Sistema de gestión
+          &copy; {new Date().getFullYear()} Ferretería Industrial Cordillera
         </p>
       </div>
 
       <div className="flex w-full items-center justify-center bg-background px-6 md:w-1/2">
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-8">
           <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-semibold">Iniciá sesión</h1>
-            <p className="text-muted-foreground">Sistema de gestión Cordillera</p>
+            <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
+            <p className="text-muted-foreground">
+              Acceso al panel de gestión
+            </p>
           </div>
 
           {error && (
@@ -116,7 +131,7 @@ export default function LoginPage() {
               <PasswordInput
                 id="password"
                 autoComplete="current-password"
-                placeholder="Tu contraseña"
+                placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
