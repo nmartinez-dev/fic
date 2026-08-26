@@ -12,7 +12,6 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { AuthContextType, User } from '@/types/auth';
 import { mapSupabaseUserToUser } from '@/types/auth';
-import { isRole, type Role } from '@/types/roles';
 import * as authService from '@/services/auth-service';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,11 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        const role: Role | null = isRole(
-          session.user.app_metadata?.role
-        )
-          ? (session.user.app_metadata.role as Role)
-          : await authService.fetchRole(session.user.id);
+        const role = await authService.fetchRole(session.user.id);
         setUser(mapSupabaseUserToUser(session.user, role));
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
