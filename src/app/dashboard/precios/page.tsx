@@ -59,11 +59,11 @@ export default function PreciosPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Precios</h1>
           <p className="text-sm text-muted-foreground">
-            Lista del proveedor grande, actualizada desde el portal.
+            Lista del proveedor actualizada desde el portal.
             {fechaLista && (
               <>
                 {' '}
-                Última lista:{' '}
+                Última actualización:{' '}
                 <span className="font-medium text-foreground">
                   {formatDate(fechaLista)}
                 </span>
