@@ -129,8 +129,7 @@ export default function OrdenesPage() {
               Órdenes de compra
             </h1>
             <p className="text-sm text-muted-foreground">
-              Cada pedido con su estado, para no pedir dos veces lo mismo ni
-              perder de vista lo que falta recibir.
+              Cada pedido con su estado.
             </p>
           </div>
         </div>
