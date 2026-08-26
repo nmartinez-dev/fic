@@ -47,7 +47,7 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Ajustes</h1>
           <p className="text-sm text-muted-foreground">
-            Parámetros que el dueño puede tocar sin depender de nadie.
+            Parámetros que el admin puede tocar sin depender de nadie.
           </p>
         </div>
       </div>

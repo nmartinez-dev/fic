@@ -11,12 +11,12 @@ create table if not exists public.profiles (
   email      text,
   full_name  text,
   role       text not null default 'compras'
-             check (role in ('owner', 'compras', 'ventas')),
+             check (role in ('admin', 'compras', 'ventas')),
   created_at timestamptz not null default now()
 );
 
 comment on table public.profiles is
-  'Perfil y rol de cada usuario. owner ve todo; compras=Marcela; ventas=Julian.';
+  'Perfil y rol de cada usuario. admin ve todo; compras=Marcela; ventas=Julian.';
 
 -- Rol del usuario actual. SECURITY DEFINER para poder leer profiles dentro
 -- de las policies sin recursion de RLS.
@@ -31,7 +31,7 @@ as $$
 $$;
 
 -- Alta automatica de perfil al crear el usuario. El rol puede venir en
--- app_metadata.role (lo setea el seed / el alta de usuarios del owner).
+-- app_metadata.role (lo setea el seed / el alta de usuarios del admin).
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql

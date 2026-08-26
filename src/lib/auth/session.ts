@@ -1,6 +1,34 @@
 import 'server-only';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { isRole, type Role, type Area, canAccess } from '@/types/roles';
+
+function normalizeRole(value: unknown): Role | null {
+  if (value === 'owner') return 'admin';
+  return isRole(value) ? value : null;
+}
+
+async function fetchProfileRole(userId: string): Promise<Role | null> {
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const role = normalizeRole(profile?.role);
+  if (role) return role;
+
+  // En route handlers el JWT a veces no llega a PostgREST; leemos el rol con service role.
+  const admin = createAdminClient();
+  const { data: fallback } = await admin
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .maybeSingle();
+
+  return normalizeRole(fallback?.role);
+}
 
 export type SessionUser = {
   id: string;
@@ -17,16 +45,12 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
+  const role = await fetchProfileRole(user.id);
 
   return {
     id: user.id,
     email: user.email ?? '',
-    role: isRole(profile?.role) ? profile.role : null,
+    role,
   };
 }
 

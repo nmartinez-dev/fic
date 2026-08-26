@@ -38,5 +38,6 @@ export const queryKeys = {
   precios: ['precios'] as const,
 
   settings: ['settings'] as const,
+  usersAdmin: ['admin', 'users'] as const,
   dashboard: ['dashboard'] as const,
 };

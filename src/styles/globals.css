@@ -137,6 +137,42 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  a[href],
+  label[for],
+  summary,
+  select:not(:disabled),
+  [type='button']:not(:disabled),
+  [type='submit']:not(:disabled),
+  [type='reset']:not(:disabled),
+  [data-slot='accordion-trigger'],
+  [data-slot='switch'],
+  [data-slot='tabs-trigger'],
+  [data-slot='select-trigger'],
+  [data-slot='select-item'],
+  [data-slot='select-scroll-up-button'],
+  [data-slot='select-scroll-down-button'],
+  [data-slot='dropdown-menu-item'],
+  [data-slot='dropdown-menu-checkbox-item'],
+  [data-slot='dropdown-menu-radio-item'],
+  [data-slot='dropdown-menu-sub-trigger'],
+  [data-slot='dropdown-menu-trigger'],
+  [data-slot='dialog-trigger'],
+  [data-slot='dialog-close'],
+  [data-slot='sheet-close'],
+  [data-slot='alert-dialog-trigger'],
+  [data-slot='popover-trigger'],
+  [data-slot='tooltip-trigger'] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled='true'],
+  [data-disabled='true'] {
+    cursor: not-allowed;
+  }
 }
 
 @keyframes page-enter {

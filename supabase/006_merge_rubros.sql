@@ -15,7 +15,7 @@ as $$
 declare
   origen_nombre text;
 begin
-  if public.auth_role() not in ('owner', 'compras') then
+  if public.auth_role() not in ('admin', 'compras') then
     raise exception 'no autorizado';
   end if;
   if p_origen = p_destino then

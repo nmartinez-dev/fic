@@ -257,7 +257,7 @@ create table if not exists public.revision_queue (
 create index if not exists revision_estado on public.revision_queue (estado);
 
 -- =====================================================================
--- Settings: parametros que el owner ajusta sin depender de nadie.
+-- Settings: parametros que el admin ajusta sin depender de nadie.
 -- Fila unica (id = 1).
 -- =====================================================================
 create table if not exists public.settings (

@@ -27,7 +27,7 @@ export function Nav() {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors',
+              'flex cursor-pointer items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors',
               active
                 ? 'border-primary text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground'

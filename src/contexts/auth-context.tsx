@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const intentionalLogoutRef = useRef(false);
 
   const loadUser = useCallback(async () => {
     try {
@@ -58,6 +60,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(mapSupabaseUserToUser(session.user, role));
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        if (intentionalLogoutRef.current) {
+          intentionalLogoutRef.current = false;
+          return;
+        }
         if (window.location.pathname.startsWith('/dashboard')) {
           router.replace('/login?error=expired');
         }
@@ -74,8 +80,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    intentionalLogoutRef.current = true;
     await authService.logout();
     setUser(null);
+    router.replace('/login');
   };
 
   return (

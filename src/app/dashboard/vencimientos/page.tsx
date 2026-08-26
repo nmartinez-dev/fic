@@ -236,7 +236,7 @@ function VencimientoChip({ v, hoy }: { v: Vencimiento; hoy: string }) {
   return (
     <VencimientoDialog v={v}>
       <button
-        className={`w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium ${cls}`}
+        className={`w-full cursor-pointer truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium ${cls}`}
         title={v.titulo}
       >
         {v.monto != null ? formatCurrency(v.monto) : v.titulo}
