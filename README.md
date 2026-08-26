@@ -7,6 +7,8 @@ persona y avisa cuando algo necesita revisión en lugar de adivinar.
 **Principio central:** si el sistema no puede resolver algo con certeza, **avisa
 en vez de adivinar**. Lo dudoso va a **Revisión**.
 
+**Demo en producción:** [https://fic-admin.vercel.app/](https://fic-admin.vercel.app/)
+
 ---
 
 ## Alcance
@@ -25,6 +27,14 @@ mapa completo del enunciado: [`docs/criterios-y-decisiones.md`](docs/criterios-y
 | **Ventas** | `julian@cordillera.com` | Resumen, precios y categorías (consulta) |
 
 Los permisos se aplican en la base de datos (RLS), no solo en la interfaz.
+
+Clave de acceso (demo y local): **`cordillera2026`**
+
+| Email | Rol |
+| --- | --- |
+| `admin@cordillera.com` | Admin |
+| `marcela@cordillera.com` | Compras |
+| `julian@cordillera.com` | Ventas |
 
 ---
 
@@ -58,13 +68,7 @@ npm run dev
 
 Detalle de tablas, buckets y variables: [`docs/arquitectura.md`](docs/arquitectura.md).
 
-[http://localhost:3000](http://localhost:3000) — clave **`cordillera2026`**
-
-| Email | Rol |
-| --- | --- |
-| `admin@cordillera.com` | Admin |
-| `marcela@cordillera.com` | Compras |
-| `julian@cordillera.com` | Ventas |
+Desarrollo local: [http://localhost:3000](http://localhost:3000)
 
 **Scripts:** `npm run build` · `npm run test` · `npm run lint` · `npm run typecheck`
 

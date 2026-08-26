@@ -1,8 +1,8 @@
 # Documentación — Cordillera
 
 Material de apoyo al código y a la entrega de la prueba técnica. El
-[README del repo](../README.md) cubre arranque local, usuarios de prueba y stack
-resumido.
+[README del repo](../README.md) cubre arranque local, usuarios de prueba, stack
+resumido y la demo en [fic-admin.vercel.app](https://fic-admin.vercel.app/).
 
 ---
 

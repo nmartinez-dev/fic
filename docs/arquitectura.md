@@ -184,6 +184,8 @@ Route Handlers para: ingesta y CRUD de facturas, archivos de facturas/órdenes, 
 
 ## Despliegue y calidad
 
+**Producción:** [https://fic-admin.vercel.app/](https://fic-admin.vercel.app/) (Vercel).
+
 App en Vercel; cron de precios en UTC (ver `vercel.json`).
 
 ### Base de datos (Supabase)
