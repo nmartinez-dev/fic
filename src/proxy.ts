@@ -39,6 +39,8 @@ function areaForPath(pathname: string): Area | null {
       return 'facturas';
     case 'ordenes':
       return 'ordenes';
+    case 'rubros':
+      return 'rubros';
     case 'vencimientos':
       return 'vencimientos';
     case 'revision':
