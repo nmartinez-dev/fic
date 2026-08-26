@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { ClipboardList, Plus } from 'lucide-react';
 import { FeatureIcon } from '@/components/ui/feature-icon';
@@ -24,10 +25,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useOrdenes, useCreateOrden, useUpdateEstadoOrden } from '@/hooks/use-ordenes';
+import {
+  useOrdenes,
+  useCreateOrden,
+  useUpdateEstadoOrden,
+  useSyncAvisosOrdenes,
+} from '@/hooks/use-ordenes';
 import { useProveedores } from '@/hooks/use-proveedores';
 import { formatCurrency, formatDate, todayISO } from '@/lib/format';
-import type { EstadoOrden } from '@/types/orden';
+import type { EstadoOrden, FiltroEstadoOrden } from '@/types/orden';
+import { ESTADOS_ABIERTOS } from '@/types/orden';
+import { OrdenesPendientesBanner } from '@/components/ordenes/ordenes-pendientes-banner';
+import { OrdenAcciones } from '@/components/ordenes/orden-acciones';
 
 const ESTADOS: EstadoOrden[] = ['pendiente', 'parcial', 'recibida', 'cancelada'];
 const ESTADO_LABEL: Record<EstadoOrden, string> = {
@@ -43,9 +52,64 @@ const ESTADO_CLS: Record<EstadoOrden, string> = {
   cancelada: 'text-muted-foreground',
 };
 
+type FiltroOption = { value: FiltroEstadoOrden; label: string };
+
+const FILTROS: FiltroOption[] = [
+  { value: 'todas', label: 'Todas' },
+  { value: 'pendientes', label: 'Pendientes' },
+  { value: 'pendiente', label: 'Sin recibir' },
+  { value: 'parcial', label: 'Parcial' },
+  { value: 'recibida', label: 'Recibidas' },
+  { value: 'cancelada', label: 'Canceladas' },
+];
+
+function filtrarOrdenes(
+  ordenes: ReturnType<typeof useOrdenes>['data'],
+  filtro: FiltroEstadoOrden
+) {
+  const list = ordenes ?? [];
+  if (filtro === 'todas') return list;
+  if (filtro === 'pendientes') {
+    return list.filter((o) => ESTADOS_ABIERTOS.includes(o.estado));
+  }
+  return list.filter((o) => o.estado === filtro);
+}
+
 export default function OrdenesPage() {
+  const searchParams = useSearchParams();
   const { data: ordenes, isLoading } = useOrdenes();
   const updateEstado = useUpdateEstadoOrden();
+  const syncAvisos = useSyncAvisosOrdenes();
+  const filtroInicial = searchParams.get('filtro');
+  const [filtro, setFiltro] = useState<FiltroEstadoOrden>(() => {
+    if (
+      filtroInicial === 'pendientes' ||
+      filtroInicial === 'pendiente' ||
+      filtroInicial === 'parcial' ||
+      filtroInicial === 'recibida' ||
+      filtroInicial === 'cancelada'
+    ) {
+      return filtroInicial;
+    }
+    return 'todas';
+  });
+  const synced = useRef(false);
+
+  useEffect(() => {
+    if (synced.current) return;
+    synced.current = true;
+    syncAvisos.mutate();
+  }, [syncAvisos]);
+
+  const abiertas = useMemo(
+    () => (ordenes ?? []).filter((o) => ESTADOS_ABIERTOS.includes(o.estado)).length,
+    [ordenes]
+  );
+
+  const visibles = useMemo(
+    () => filtrarOrdenes(ordenes, filtro),
+    [ordenes, filtro]
+  );
 
   const cambiarEstado = (id: string, estado: EstadoOrden) => {
     toast.promise(updateEstado.mutateAsync({ id, estado }), {
@@ -73,16 +137,36 @@ export default function OrdenesPage() {
         <NuevaOrdenDialog />
       </div>
 
+      <OrdenesPendientesBanner
+        pendientes={abiertas}
+        onVerPendientes={() => setFiltro('pendientes')}
+      />
+
+      <div className="flex flex-wrap gap-2">
+        {FILTROS.map((f) => (
+          <Button
+            key={f.value}
+            variant={filtro === f.value ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFiltro(f.value)}
+          >
+            {f.label}
+            {f.value === 'pendientes' && abiertas > 0 ? ` (${abiertas})` : ''}
+          </Button>
+        ))}
+      </div>
+
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-14 w-full" />
           ))}
         </div>
-      ) : !ordenes || ordenes.length === 0 ? (
+      ) : visibles.length === 0 ? (
         <div className="rounded-xl border border-dashed py-16 text-center text-sm text-muted-foreground">
-          Todavía no hay órdenes de compra. Creá la primera con el botón de
-          arriba.
+          {filtro === 'todas'
+            ? 'Todavía no hay órdenes de compra. Creá la primera con el botón de arriba.'
+            : 'No hay órdenes con este filtro.'}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border">
@@ -95,10 +179,11 @@ export default function OrdenesPage() {
                 <th className="px-4 py-3 text-right font-medium">Total</th>
                 <th className="px-4 py-3 font-medium">Descripción</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3 text-right font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {ordenes.map((o) => (
+              {visibles.map((o) => (
                 <tr key={o.id} className="border-t">
                   <td className="px-4 py-3 font-medium">{o.numero ?? '—'}</td>
                   <td className="px-4 py-3">
@@ -135,6 +220,9 @@ export default function OrdenesPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <OrdenAcciones orden={o} />
                   </td>
                 </tr>
               ))}

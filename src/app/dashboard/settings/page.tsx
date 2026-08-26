@@ -16,12 +16,14 @@ export default function SettingsPage() {
   const update = useUpdateSettings();
 
   const [dias, setDias] = useState('');
+  const [diasOrden, setDiasOrden] = useState('');
   const [umbral, setUmbral] = useState('');
   const [cron, setCron] = useState('');
 
   useEffect(() => {
     if (settings) {
       setDias(String(settings.dias_aviso_vencimiento));
+      setDiasOrden(String(settings.dias_aviso_orden_pendiente ?? 14));
       setUmbral(String(settings.umbral_aviso_monto));
       setCron(settings.actualizacion_precios_cron);
     }
@@ -30,6 +32,7 @@ export default function SettingsPage() {
   const submit = () => {
     const p = update.mutateAsync({
       dias_aviso_vencimiento: Number(dias) || 0,
+      dias_aviso_orden_pendiente: Number(diasOrden) || 0,
       umbral_aviso_monto: Number(umbral) || 0,
       actualizacion_precios_cron: cron.trim(),
     });
@@ -59,7 +62,8 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="text-base">Parámetros del sistema</CardTitle>
             <CardDescription>
-              Afectan las alertas de vencimiento y la actualización de precios.
+              Afectan las alertas de vencimiento, órdenes de compra y la
+              actualización de precios.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -75,6 +79,23 @@ export default function SettingsPage() {
               <p className="text-xs text-muted-foreground">
                 Con cuántos días de anticipación se avisa que algo está por
                 vencer.
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="s-dias-orden">
+                Días para avisar orden pendiente
+              </Label>
+              <Input
+                id="s-dias-orden"
+                type="number"
+                min="0"
+                value={diasOrden}
+                onChange={(e) => setDiasOrden(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Si un pedido sigue sin recibirse (pendiente o parcial) después de
+                esta cantidad de días desde la fecha del pedido, aparece un aviso
+                en la bandeja.
               </p>
             </div>
             <div className="grid gap-2">
