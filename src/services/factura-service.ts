@@ -1,15 +1,15 @@
 import { createClient } from '@/lib/supabase/client';
-import type { FacturaConProveedor } from '@/types/factura';
+import type { FacturaConSaldo } from '@/types/factura';
 import type { IngestResultado } from '@/lib/ingest/ingest';
 
-export async function listFacturas(): Promise<FacturaConProveedor[]> {
+export async function listFacturas(): Promise<FacturaConSaldo[]> {
   const supabase = createClient();
   const { data, error } = await supabase
-    .from('facturas')
-    .select('*, proveedor:proveedores(id, nombre)')
+    .from('v_facturas')
+    .select('*')
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as FacturaConProveedor[];
+  return (data ?? []) as unknown as FacturaConSaldo[];
 }
 
 export type IngestResponse = IngestResultado & {
