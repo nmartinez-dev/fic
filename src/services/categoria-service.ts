@@ -89,6 +89,12 @@ export async function addAliasCategoria(
   if (error) throw new Error(error.message);
 }
 
+export async function deleteAliasCategoria(aliasId: string): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from('rubro_alias').delete().eq('id', aliasId);
+  if (error) throw new Error(error.message);
+}
+
 /** Fusiona la categoría `origen` dentro de `destino` (RPC atómica). */
 export async function mergeCategorias(
   origen: string,

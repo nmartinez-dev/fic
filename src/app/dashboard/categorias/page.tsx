@@ -7,7 +7,6 @@ import { FeatureIcon } from '@/components/ui/feature-icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { IconButton, IconTooltip, iconButtonClassName } from '@/components/ui/icon-button';
@@ -43,12 +42,13 @@ import {
   useGastoPorCategoria,
   useCreateCategoria,
   useAddAliasCategoria,
+  useDeleteAliasCategoria,
   useMergeCategorias,
   useUpdateCategoria,
   useDeleteCategoria,
 } from '@/hooks/use-categorias';
 import { formatCurrency } from '@/lib/format';
-import type { CategoriaConAlias } from '@/types/categoria';
+import type { CategoriaAlias, CategoriaConAlias } from '@/types/categoria';
 
 export default function CategoriasPage() {
   const { data: categorias, isLoading } = useCategoriasConAlias();
@@ -237,9 +237,7 @@ function CategoriaCard({ categoria }: { categoria: CategoriaConAlias }) {
             </span>
           ) : (
             categoria.categoria_alias.map((a) => (
-              <Badge key={a.id} variant="outline">
-                {a.alias}
-              </Badge>
+              <VarianteChip key={a.id} variante={a} />
             ))
           )}
         </div>
@@ -291,6 +289,56 @@ function CategoriaCard({ categoria }: { categoria: CategoriaConAlias }) {
         </DialogContent>
       </Dialog>
     </Card>
+  );
+}
+
+function VarianteChip({ variante }: { variante: CategoriaAlias }) {
+  const eliminar = useDeleteAliasCategoria();
+
+  const confirmDelete = () => {
+    toast.promise(eliminar.mutateAsync(variante.id), {
+      loading: 'Eliminando...',
+      success: 'Variante eliminada.',
+      error: (e) => (e as Error).message,
+    });
+  };
+
+  return (
+    <div className="inline-flex items-center gap-0.5 rounded-md border px-1.5 py-0.5 text-xs">
+      <span className="px-1">{variante.alias}</span>
+      <AlertDialog>
+        <IconTooltip label="Eliminar variante">
+          <AlertDialogTrigger asChild>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6 shrink-0"
+              aria-label="Eliminar variante"
+              disabled={eliminar.isPending}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </AlertDialogTrigger>
+        </IconTooltip>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar variante?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se borrará{' '}
+              <span className="font-medium">&ldquo;{variante.alias}&rdquo;</span>.
+              El sistema dejará de reconocer esa forma al matchear facturas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
 

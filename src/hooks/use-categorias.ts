@@ -41,6 +41,12 @@ export function useAddAliasCategoria() {
   );
 }
 
+export function useDeleteAliasCategoria() {
+  return useCategoriaMutation<string>((aliasId) =>
+    categoriaService.deleteAliasCategoria(aliasId)
+  );
+}
+
 export function useMergeCategorias() {
   return useCategoriaMutation<{ origen: string; destino: string }>(
     ({ origen, destino }) => categoriaService.mergeCategorias(origen, destino)
