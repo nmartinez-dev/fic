@@ -12,7 +12,7 @@ accesos.
 ### Cada uno entra solo a lo que le toca
 
 - **Admin** — ve todas las secciones y puede gestionar usuarios.
-- **Compras** (Marcela) — proveedores, facturas, órdenes, rubros, vencimientos, avisos.
+- **Compras** (Marcela) — proveedores, facturas, órdenes, categorías, vencimientos, avisos.
 - **Ventas** (Julián) — ventas y su dashboard.
 
 Si alguien intenta entrar a una sección que no le corresponde, el sistema lo
