@@ -67,7 +67,7 @@ export default function UsuariosPage() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Usuarios</h1>
             <p className="text-sm text-muted-foreground">
-              Alta, edición y baja de cuentas. Solo el admin gestiona accesos y
+              Alta, edición y baja de cuentas. Solo el administrador gestiona accesos y
               contraseñas.
             </p>
           </div>
