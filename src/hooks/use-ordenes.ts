@@ -56,6 +56,17 @@ export function useDeleteOrden() {
   });
 }
 
+export function useUploadOrdenArchivo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) =>
+      ordenService.uploadOrdenArchivo(id, file),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.ordenesCompraAll });
+    },
+  });
+}
+
 export function useUpdateEstadoOrden() {
   const qc = useQueryClient();
   return useMutation({

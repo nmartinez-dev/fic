@@ -24,6 +24,10 @@ async function resolverAvisosOrden(ordenId: string): Promise<void> {
     .eq('estado', 'pendiente');
 }
 
+async function parseJson(res: Response): Promise<Record<string, unknown>> {
+  return (await res.json()) as Record<string, unknown>;
+}
+
 export async function listOrdenes(): Promise<OrdenCompraConProveedor[]> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -58,9 +62,9 @@ export async function updateOrden(
 }
 
 export async function deleteOrden(id: string): Promise<void> {
-  const supabase = createClient();
-  const { error } = await supabase.from('ordenes_compra').delete().eq('id', id);
-  if (error) throw new Error(error.message);
+  const res = await fetch(`/api/ordenes/${id}`, { method: 'DELETE' });
+  const json = await parseJson(res);
+  if (!res.ok) throw new Error((json.error as string) ?? 'Error al eliminar');
 }
 
 export async function updateEstadoOrden(
@@ -77,4 +81,22 @@ export async function updateEstadoOrden(
   if (estado === 'recibida' || estado === 'cancelada') {
     await resolverAvisosOrden(id);
   }
+}
+
+export async function getOrdenArchivoUrl(id: string): Promise<string> {
+  const res = await fetch(`/api/ordenes/${id}/archivo`);
+  const json = await parseJson(res);
+  if (!res.ok) throw new Error((json.error as string) ?? 'No se pudo abrir el archivo');
+  return json.url as string;
+}
+
+export async function uploadOrdenArchivo(id: string, file: File): Promise<void> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch(`/api/ordenes/${id}/archivo`, {
+    method: 'POST',
+    body: form,
+  });
+  const json = await parseJson(res);
+  if (!res.ok) throw new Error((json.error as string) ?? 'Error al subir el archivo');
 }

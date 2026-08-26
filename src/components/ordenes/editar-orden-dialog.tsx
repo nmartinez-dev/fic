@@ -23,8 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useUpdateOrden } from '@/hooks/use-ordenes';
+import { useUpdateOrden, useUploadOrdenArchivo } from '@/hooks/use-ordenes';
 import { useProveedores } from '@/hooks/use-proveedores';
+import { OrdenArchivoField } from '@/components/ordenes/orden-archivo-field';
 import type { OrdenCompraConProveedor, UpdateOrdenInput } from '@/types/orden';
 
 const SIN_PROVEEDOR = '__none__';
@@ -37,8 +38,10 @@ export function EditarOrdenDialog({ orden }: { orden: OrdenCompraConProveedor })
   const [total, setTotal] = useState(String(orden.total));
   const [descripcion, setDescripcion] = useState(orden.descripcion ?? '');
   const [notas, setNotas] = useState(orden.notas ?? '');
+  const [archivo, setArchivo] = useState<File | null>(null);
 
   const update = useUpdateOrden();
+  const uploadArchivo = useUploadOrdenArchivo();
   const { data: proveedores } = useProveedores();
 
   useEffect(() => {
@@ -49,12 +52,13 @@ export function EditarOrdenDialog({ orden }: { orden: OrdenCompraConProveedor })
     setTotal(String(orden.total));
     setDescripcion(orden.descripcion ?? '');
     setNotas(orden.notas ?? '');
+    setArchivo(null);
   }, [open, orden]);
 
   const totalNum = Number(total);
   const invalido = !Number.isFinite(totalNum) || totalNum < 0;
 
-  const submit = () => {
+  const submit = async () => {
     const input: UpdateOrdenInput = {
       proveedor_id: proveedorId === SIN_PROVEEDOR ? null : proveedorId,
       numero: numero.trim() || null,
@@ -64,11 +68,18 @@ export function EditarOrdenDialog({ orden }: { orden: OrdenCompraConProveedor })
       notas: notas.trim() || null,
     };
 
-    toast.promise(update.mutateAsync({ id: orden.id, input }), {
+    const tarea = (async () => {
+      await update.mutateAsync({ id: orden.id, input });
+      if (archivo) {
+        await uploadArchivo.mutateAsync({ id: orden.id, file: archivo });
+      }
+    })();
+
+    toast.promise(tarea, {
       loading: 'Guardando...',
       success: () => {
         setOpen(false);
-        return 'Orden actualizada.';
+        return archivo ? 'Orden y documento actualizados.' : 'Orden actualizada.';
       },
       error: (e) => (e as Error).message,
     });
@@ -161,13 +172,21 @@ export function EditarOrdenDialog({ orden }: { orden: OrdenCompraConProveedor })
               placeholder="Observaciones internas"
             />
           </div>
+          <OrdenArchivoField
+            id={`orden-archivo-edit-${orden.id}`}
+            tieneArchivo={!!orden.archivo_path}
+            onFileChange={setArchivo}
+          />
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancelar
           </Button>
-          <Button onClick={submit} disabled={invalido || update.isPending}>
+          <Button
+            onClick={submit}
+            disabled={invalido || update.isPending || uploadArchivo.isPending}
+          >
             Guardar
           </Button>
         </DialogFooter>

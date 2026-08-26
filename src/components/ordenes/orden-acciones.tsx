@@ -1,9 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { Trash2 } from 'lucide-react';
+import { ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { IconTooltip, iconButtonClassName } from '@/components/ui/icon-button';
+import { IconButton, IconTooltip, iconButtonClassName } from '@/components/ui/icon-button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,11 +17,25 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useDeleteOrden } from '@/hooks/use-ordenes';
+import { getOrdenArchivoUrl } from '@/services/orden-service';
 import type { OrdenCompraConProveedor } from '@/types/orden';
 import { EditarOrdenDialog } from '@/components/ordenes/editar-orden-dialog';
 
 export function OrdenAcciones({ orden }: { orden: OrdenCompraConProveedor }) {
+  const [abriendoArchivo, setAbriendoArchivo] = useState(false);
   const eliminar = useDeleteOrden();
+
+  const verArchivo = async () => {
+    setAbriendoArchivo(true);
+    try {
+      const url = await getOrdenArchivoUrl(orden.id);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setAbriendoArchivo(false);
+    }
+  };
 
   const confirmDelete = () => {
     toast.promise(eliminar.mutateAsync(orden.id), {
@@ -31,9 +46,19 @@ export function OrdenAcciones({ orden }: { orden: OrdenCompraConProveedor }) {
   };
 
   const etiqueta = orden.numero ?? 'esta orden';
+  const docTooltip = orden.archivo_path
+    ? 'Ver documento adjunto'
+    : 'Ver documento — no hay archivo adjunto';
 
   return (
     <div className="flex justify-end gap-1">
+      <IconButton
+        tooltip={docTooltip}
+        disabled={!orden.archivo_path || abriendoArchivo}
+        onClick={verArchivo}
+      >
+        <ExternalLink className="h-4 w-4" />
+      </IconButton>
       <EditarOrdenDialog orden={orden} />
       <AlertDialog>
         <IconTooltip label="Eliminar orden">
@@ -54,8 +79,8 @@ export function OrdenAcciones({ orden }: { orden: OrdenCompraConProveedor }) {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar orden?</AlertDialogTitle>
             <AlertDialogDescription>
-              Se borrará <span className="font-medium">{etiqueta}</span> y su
-              historial. Esta acción no se puede deshacer.
+              Se borrará <span className="font-medium">{etiqueta}</span>, su
+              documento adjunto y su historial. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

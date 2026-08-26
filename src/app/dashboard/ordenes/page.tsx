@@ -30,6 +30,7 @@ import {
   useCreateOrden,
   useUpdateEstadoOrden,
   useSyncAvisosOrdenes,
+  useUploadOrdenArchivo,
 } from '@/hooks/use-ordenes';
 import { useProveedores } from '@/hooks/use-proveedores';
 import { formatCurrency, formatDate, todayISO } from '@/lib/format';
@@ -37,6 +38,7 @@ import type { EstadoOrden, FiltroEstadoOrden } from '@/types/orden';
 import { ESTADOS_ABIERTOS } from '@/types/orden';
 import { OrdenesPendientesBanner } from '@/components/ordenes/ordenes-pendientes-banner';
 import { OrdenAcciones } from '@/components/ordenes/orden-acciones';
+import { OrdenArchivoField } from '@/components/ordenes/orden-archivo-field';
 
 const ESTADOS: EstadoOrden[] = ['pendiente', 'parcial', 'recibida', 'cancelada'];
 const ESTADO_LABEL: Record<EstadoOrden, string> = {
@@ -240,8 +242,10 @@ function NuevaOrdenDialog() {
   const [fecha, setFecha] = useState(todayISO());
   const [total, setTotal] = useState('');
   const [descripcion, setDescripcion] = useState('');
+  const [archivo, setArchivo] = useState<File | null>(null);
   const { data: proveedores } = useProveedores();
   const crear = useCreateOrden();
+  const uploadArchivo = useUploadOrdenArchivo();
 
   const reset = () => {
     setProveedorId('');
@@ -249,22 +253,29 @@ function NuevaOrdenDialog() {
     setFecha(todayISO());
     setTotal('');
     setDescripcion('');
+    setArchivo(null);
   };
 
   const submit = () => {
-    const p = crear.mutateAsync({
-      proveedor_id: proveedorId || null,
-      numero: numero.trim() || null,
-      fecha,
-      total: Number(total) || 0,
-      descripcion: descripcion.trim() || null,
-    });
-    toast.promise(p, {
+    const tarea = (async () => {
+      const orden = await crear.mutateAsync({
+        proveedor_id: proveedorId || null,
+        numero: numero.trim() || null,
+        fecha,
+        total: Number(total) || 0,
+        descripcion: descripcion.trim() || null,
+      });
+      if (archivo) {
+        await uploadArchivo.mutateAsync({ id: orden.id, file: archivo });
+      }
+    })();
+
+    toast.promise(tarea, {
       loading: 'Creando orden...',
       success: () => {
         setOpen(false);
         reset();
-        return 'Orden creada.';
+        return archivo ? 'Orden creada con documento adjunto.' : 'Orden creada.';
       },
       error: (e) => (e as Error).message,
     });
@@ -342,16 +353,23 @@ function NuevaOrdenDialog() {
               placeholder="Qué se pidió"
             />
           </div>
+          <OrdenArchivoField
+            id="oc-archivo"
+            onFileChange={setArchivo}
+          />
         </div>
         <DialogFooter>
           <Button
             variant="outline"
             onClick={() => setOpen(false)}
-            disabled={crear.isPending}
+            disabled={crear.isPending || uploadArchivo.isPending}
           >
             Cancelar
           </Button>
-          <Button onClick={submit} disabled={crear.isPending}>
+          <Button
+            onClick={submit}
+            disabled={crear.isPending || uploadArchivo.isPending}
+          >
             Crear orden
           </Button>
         </DialogFooter>

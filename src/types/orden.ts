@@ -11,6 +11,7 @@ export type OrdenCompra = {
   estado: EstadoOrden;
   descripcion: string | null;
   notas: string | null;
+  archivo_path: string | null;
   created_at: string;
   updated_at: string;
 };
