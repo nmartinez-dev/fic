@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { FeatureIcon } from '@/components/ui/feature-icon';
 import { Button } from '@/components/ui/button';
+import { IconButton } from '@/components/ui/icon-button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -158,9 +159,9 @@ export default function VencimientosPage() {
           {MESES[cursor.month]} {cursor.year}
         </h2>
         <div className="flex gap-1">
-          <Button variant="outline" size="icon" onClick={goPrev}>
+          <IconButton tooltip="Mes anterior" variant="outline" onClick={goPrev}>
             <ChevronLeft className="h-4 w-4" />
-          </Button>
+          </IconButton>
           <Button
             variant="outline"
             size="sm"
@@ -168,9 +169,9 @@ export default function VencimientosPage() {
           >
             Hoy
           </Button>
-          <Button variant="outline" size="icon" onClick={goNext}>
+          <IconButton tooltip="Mes siguiente" variant="outline" onClick={goNext}>
             <ChevronRight className="h-4 w-4" />
-          </Button>
+          </IconButton>
         </div>
       </div>
 

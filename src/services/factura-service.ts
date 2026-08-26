@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import type { FacturaConSaldo } from '@/types/factura';
+import type { FacturaConSaldo, UpdateFacturaInput } from '@/types/factura';
 import type { IngestResultado } from '@/lib/ingest/ingest';
 
 export async function listFacturas(): Promise<FacturaConSaldo[]> {
@@ -10,6 +10,36 @@ export async function listFacturas(): Promise<FacturaConSaldo[]> {
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as unknown as FacturaConSaldo[];
+}
+
+async function parseJson(res: Response): Promise<Record<string, unknown>> {
+  return (await res.json()) as Record<string, unknown>;
+}
+
+export async function getFacturaArchivoUrl(id: string): Promise<string> {
+  const res = await fetch(`/api/facturas/${id}/archivo`);
+  const json = await parseJson(res);
+  if (!res.ok) throw new Error((json.error as string) ?? 'No se pudo abrir el archivo');
+  return json.url as string;
+}
+
+export async function updateFactura(
+  id: string,
+  input: UpdateFacturaInput
+): Promise<void> {
+  const res = await fetch(`/api/facturas/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const json = await parseJson(res);
+  if (!res.ok) throw new Error((json.error as string) ?? 'Error al guardar');
+}
+
+export async function deleteFactura(id: string): Promise<void> {
+  const res = await fetch(`/api/facturas/${id}`, { method: 'DELETE' });
+  const json = await parseJson(res);
+  if (!res.ok) throw new Error((json.error as string) ?? 'Error al eliminar');
 }
 
 export type IngestResponse = IngestResultado & {

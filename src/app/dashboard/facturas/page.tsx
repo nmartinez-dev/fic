@@ -1,24 +1,40 @@
 'use client';
 
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { FileText, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FeatureIcon } from '@/components/ui/feature-icon';
 import { useFacturas, useIngestFactura } from '@/hooks/use-facturas';
+import { useRevisionPendientes } from '@/hooks/use-revision';
 import { formatCurrency, formatDate } from '@/lib/format';
 import {
   EstadoFacturaBadge,
   EstadoPagoBadge,
   OrigenBadge,
 } from '@/components/facturas/estado-badges';
-import { RegistrarPagoDialog } from '@/components/facturas/registrar-pago-dialog';
+import { FacturaAcciones } from '@/components/facturas/factura-acciones';
+import { FacturaRevisionBanner } from '@/components/facturas/factura-revision-banner';
 
 export default function FacturasPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { data: facturas, isLoading } = useFacturas();
+  const { data: revisionItems } = useRevisionPendientes();
   const ingest = useIngestFactura();
+
+  const facturasEnRevision = useMemo(
+    () => (facturas ?? []).filter((f) => f.estado === 'en_revision').length,
+    [facturas]
+  );
+
+  const itemsRevision = useMemo(
+    () =>
+      (revisionItems ?? []).filter(
+        (item) => item.entidad === 'factura' && item.estado === 'pendiente'
+      ).length,
+    [revisionItems]
+  );
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,7 +59,7 @@ export default function FacturasPage() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Facturas</h1>
             <p className="text-sm text-muted-foreground">
-              PDF, escaneado o Excel. Lo dudoso va a Revisión, no se adivina.
+              PDF, imagen o Excel. Lo dudoso va a Revisión.
             </p>
           </div>
         </div>
@@ -63,6 +79,11 @@ export default function FacturasPage() {
           onChange={handleFile}
         />
       </div>
+
+      <FacturaRevisionBanner
+        facturasEnRevision={facturasEnRevision}
+        itemsRevision={itemsRevision}
+      />
 
       {isLoading ? (
         <div className="space-y-2">
@@ -119,12 +140,8 @@ export default function FacturasPage() {
                   <td className="px-4 py-3">
                     <EstadoPagoBadge estado={f.estado_pago} />
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    {f.estado === 'confirmada' && f.saldo > 0 ? (
-                      <RegistrarPagoDialog factura={f} />
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
+                  <td className="px-4 py-3">
+                    <FacturaAcciones factura={f} />
                   </td>
                 </tr>
               ))}

@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { IconTooltip, iconButtonClassName } from '@/components/ui/icon-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -28,7 +29,17 @@ import type { FacturaConSaldo } from '@/types/factura';
 
 const MEDIOS = ['transferencia', 'efectivo', 'cheque', 'otro'] as const;
 
-export function RegistrarPagoDialog({ factura }: { factura: FacturaConSaldo }) {
+type RegistrarPagoDialogProps = {
+  factura: FacturaConSaldo;
+  disabled?: boolean;
+  tooltip?: string;
+};
+
+export function RegistrarPagoDialog({
+  factura,
+  disabled = false,
+  tooltip = 'Registrar pago',
+}: RegistrarPagoDialogProps) {
   const [open, setOpen] = useState(false);
   const [monto, setMonto] = useState(String(factura.saldo));
   const [fecha, setFecha] = useState(todayISO());
@@ -39,6 +50,7 @@ export function RegistrarPagoDialog({ factura }: { factura: FacturaConSaldo }) {
   const invalido = !Number.isFinite(montoNum) || montoNum <= 0;
 
   const onOpenChange = (v: boolean) => {
+    if (disabled && v) return;
     setOpen(v);
     if (v) setMonto(String(factura.saldo));
   };
@@ -63,12 +75,20 @@ export function RegistrarPagoDialog({ factura }: { factura: FacturaConSaldo }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          <Wallet className="mr-2 h-4 w-4" />
-          Registrar pago
-        </Button>
-      </DialogTrigger>
+      <IconTooltip label={tooltip}>
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            className={iconButtonClassName}
+            aria-label={tooltip}
+            disabled={disabled}
+          >
+            <Wallet className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+      </IconTooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Registrar pago</DialogTitle>

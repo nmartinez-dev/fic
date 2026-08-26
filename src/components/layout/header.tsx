@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { ChangePasswordDialog } from '@/components/layout/change-password-dialog';
 import { Button } from '@/components/ui/button';
+import { IconTooltip } from '@/components/ui/icon-button';
 import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
@@ -55,11 +56,13 @@ export function Header() {
           )}
           <ThemeToggle />
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="Cuenta">
-                <UserIcon className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
+            <IconTooltip label="Cuenta">
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" aria-label="Cuenta">
+                  <UserIcon className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+            </IconTooltip>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="truncate">
                 {user?.email ?? 'Sesión'}

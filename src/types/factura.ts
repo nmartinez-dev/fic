@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export type EstadoPago = 'sin_pagar' | 'parcial' | 'saldada';
 export type EstadoFactura = 'confirmada' | 'en_revision';
 export type OrigenFactura = 'pdf' | 'pdf_escaneado' | 'excel' | 'manual';
@@ -38,3 +40,13 @@ export type FacturaExtraida = {
   /** Campos que no se pudieron extraer con confianza. */
   camposFaltantes: string[];
 };
+
+export const updateFacturaSchema = z.object({
+  numero: z.string().trim().min(1).nullable().optional(),
+  fecha: z.string().date().nullable().optional(),
+  fecha_vencimiento: z.string().date().nullable().optional(),
+  total: z.number().positive().optional(),
+  proveedor_id: z.string().uuid().nullable().optional(),
+});
+
+export type UpdateFacturaInput = z.infer<typeof updateFacturaSchema>;
