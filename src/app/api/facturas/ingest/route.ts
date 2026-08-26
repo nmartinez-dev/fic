@@ -88,7 +88,7 @@ function emptyExtraida(
 ): FacturaExtraida {
   return {
     proveedorNombre: null,
-    rubroNombre: null,
+    categoriaNombre: null,
     numero: null,
     fecha: null,
     total: null,

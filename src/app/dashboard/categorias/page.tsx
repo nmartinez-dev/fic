@@ -39,20 +39,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  useRubrosConAlias,
-  useGastoPorRubro,
-  useCreateRubro,
-  useAddAliasRubro,
-  useMergeRubros,
-  useUpdateRubro,
-  useDeleteRubro,
-} from '@/hooks/use-rubros';
+  useCategoriasConAlias,
+  useGastoPorCategoria,
+  useCreateCategoria,
+  useAddAliasCategoria,
+  useMergeCategorias,
+  useUpdateCategoria,
+  useDeleteCategoria,
+} from '@/hooks/use-categorias';
 import { formatCurrency } from '@/lib/format';
-import type { RubroConAlias } from '@/types/rubro';
+import type { CategoriaConAlias } from '@/types/categoria';
 
-export default function RubrosPage() {
-  const { data: rubros, isLoading } = useRubrosConAlias();
-  const { data: gasto } = useGastoPorRubro();
+export default function CategoriasPage() {
+  const { data: categorias, isLoading } = useCategoriasConAlias();
+  const { data: gasto } = useGastoPorCategoria();
 
   return (
     <div className="space-y-6">
@@ -60,22 +60,22 @@ export default function RubrosPage() {
         <div className="flex items-center gap-3">
           <FeatureIcon icon={Tags} size="md" />
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Rubros</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Categorías</h1>
             <p className="text-sm text-muted-foreground">
-              Un mismo rubro escrito de varias formas se unifica en uno solo.
+              Una misma categoría escrita de varias formas se unifica en una sola.
               Así el gasto por tipo de producto sale bien sumado.
             </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <NuevoRubroButton />
-          <FusionarRubrosDialog rubros={rubros ?? []} />
+          <NuevaCategoriaButton />
+          <FusionarCategoriasDialog categorias={categorias ?? []} />
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Gasto por rubro</CardTitle>
+          <CardTitle className="text-base">Gasto por categoría</CardTitle>
         </CardHeader>
         <CardContent>
           {!gasto || gasto.length === 0 ? (
@@ -87,15 +87,15 @@ export default function RubrosPage() {
               <table className="w-full text-sm">
                 <thead className="text-left text-muted-foreground">
                   <tr>
-                    <th className="py-2 font-medium">Rubro</th>
+                    <th className="py-2 font-medium">Categoría</th>
                     <th className="py-2 text-right font-medium">Facturas</th>
                     <th className="py-2 text-right font-medium">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {gasto.map((g) => (
-                    <tr key={g.rubro_id ?? 'sin'} className="border-t">
-                      <td className="py-2">{g.rubro}</td>
+                    <tr key={g.categoria_id ?? 'sin'} className="border-t">
+                      <td className="py-2">{g.categoria}</td>
                       <td className="py-2 text-right tabular-nums">
                         {g.facturas}
                       </td>
@@ -119,8 +119,8 @@ export default function RubrosPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
-          {(rubros ?? []).map((r) => (
-            <RubroCard key={r.id} rubro={r} />
+          {(categorias ?? []).map((c) => (
+            <CategoriaCard key={c.id} categoria={c} />
           ))}
         </div>
       )}
@@ -128,50 +128,53 @@ export default function RubrosPage() {
   );
 }
 
-function RubroCard({ rubro }: { rubro: RubroConAlias }) {
+function CategoriaCard({ categoria }: { categoria: CategoriaConAlias }) {
   const [alias, setAlias] = useState('');
   const [editOpen, setEditOpen] = useState(false);
-  const [nombre, setNombre] = useState(rubro.nombre);
-  const addAlias = useAddAliasRubro();
-  const update = useUpdateRubro();
-  const eliminar = useDeleteRubro();
+  const [nombre, setNombre] = useState(categoria.nombre);
+  const addAlias = useAddAliasCategoria();
+  const update = useUpdateCategoria();
+  const eliminar = useDeleteCategoria();
 
-  const refs = (rubro.facturas_count ?? 0) + (rubro.ventas_count ?? 0);
+  const refs = (categoria.facturas_count ?? 0) + (categoria.ventas_count ?? 0);
   const deleteTooltip =
     refs > 0
       ? 'Eliminar — tiene facturas o ventas asociadas (fusioná antes)'
-      : 'Eliminar rubro';
+      : 'Eliminar categoría';
 
   const submitAlias = () => {
     const value = alias.trim();
     if (value.length < 2) return;
-    toast.promise(addAlias.mutateAsync({ rubroId: rubro.id, alias: value }), {
-      loading: 'Guardando...',
-      success: () => {
-        setAlias('');
-        return 'Alias agregado.';
-      },
-      error: (e) => (e as Error).message,
-    });
+    toast.promise(
+      addAlias.mutateAsync({ categoriaId: categoria.id, alias: value }),
+      {
+        loading: 'Guardando...',
+        success: () => {
+          setAlias('');
+          return 'Alias agregado.';
+        },
+        error: (e) => (e as Error).message,
+      }
+    );
   };
 
   const submitEdit = () => {
     const value = nombre.trim();
     if (value.length < 2) return;
-    toast.promise(update.mutateAsync({ id: rubro.id, nombre: value }), {
+    toast.promise(update.mutateAsync({ id: categoria.id, nombre: value }), {
       loading: 'Guardando...',
       success: () => {
         setEditOpen(false);
-        return 'Rubro actualizado.';
+        return 'Categoría actualizada.';
       },
       error: (e) => (e as Error).message,
     });
   };
 
   const confirmDelete = () => {
-    toast.promise(eliminar.mutateAsync(rubro.id), {
+    toast.promise(eliminar.mutateAsync(categoria.id), {
       loading: 'Eliminando...',
-      success: 'Rubro eliminado.',
+      success: 'Categoría eliminada.',
       error: (e) => (e as Error).message,
     });
   };
@@ -180,12 +183,12 @@ function RubroCard({ rubro }: { rubro: RubroConAlias }) {
     <Card>
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-base">{rubro.nombre}</CardTitle>
+          <CardTitle className="text-base">{categoria.nombre}</CardTitle>
           <div className="flex gap-1">
             <IconButton
-              tooltip="Editar rubro"
+              tooltip="Editar categoría"
               onClick={() => {
-                setNombre(rubro.nombre);
+                setNombre(categoria.nombre);
                 setEditOpen(true);
               }}
             >
@@ -208,10 +211,11 @@ function RubroCard({ rubro }: { rubro: RubroConAlias }) {
               </IconTooltip>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>¿Eliminar rubro?</AlertDialogTitle>
+                  <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Se borrará <span className="font-medium">{rubro.nombre}</span>{' '}
-                    y sus variantes. Esta acción no se puede deshacer.
+                    Se borrará{' '}
+                    <span className="font-medium">{categoria.nombre}</span> y sus
+                    variantes. Esta acción no se puede deshacer.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -227,12 +231,12 @@ function RubroCard({ rubro }: { rubro: RubroConAlias }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          {rubro.rubro_alias.length === 0 ? (
+          {categoria.categoria_alias.length === 0 ? (
             <span className="text-xs text-muted-foreground">
               Sin variantes registradas.
             </span>
           ) : (
-            rubro.rubro_alias.map((a) => (
+            categoria.categoria_alias.map((a) => (
               <Badge key={a.id} variant="outline">
                 {a.alias}
               </Badge>
@@ -260,15 +264,15 @@ function RubroCard({ rubro }: { rubro: RubroConAlias }) {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar rubro</DialogTitle>
+            <DialogTitle>Editar categoría</DialogTitle>
             <DialogDescription>
               Cambiá el nombre canónico. Las variantes (alias) se mantienen.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">
-            <Label htmlFor={`rubro-edit-${rubro.id}`}>Nombre</Label>
+            <Label htmlFor={`categoria-edit-${categoria.id}`}>Nombre</Label>
             <Input
-              id={`rubro-edit-${rubro.id}`}
+              id={`categoria-edit-${categoria.id}`}
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
             />
@@ -290,10 +294,10 @@ function RubroCard({ rubro }: { rubro: RubroConAlias }) {
   );
 }
 
-function NuevoRubroButton() {
+function NuevaCategoriaButton() {
   const [open, setOpen] = useState(false);
   const [nombre, setNombre] = useState('');
-  const crear = useCreateRubro();
+  const crear = useCreateCategoria();
 
   const submit = () => {
     const value = nombre.trim();
@@ -303,7 +307,7 @@ function NuevoRubroButton() {
       success: () => {
         setOpen(false);
         setNombre('');
-        return 'Rubro creado.';
+        return 'Categoría creada.';
       },
       error: (e) => (e as Error).message,
     });
@@ -314,20 +318,20 @@ function NuevoRubroButton() {
       <DialogTrigger asChild>
         <Button variant="outline">
           <Plus className="mr-2 h-4 w-4" />
-          Nuevo rubro
+          Nueva categoría
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nuevo rubro</DialogTitle>
+          <DialogTitle>Nueva categoría</DialogTitle>
           <DialogDescription>
             El nombre canónico. Las variantes se agregan como alias.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-2">
-          <Label htmlFor="rubro-nombre">Nombre</Label>
+          <Label htmlFor="categoria-nombre">Nombre</Label>
           <Input
-            id="rubro-nombre"
+            id="categoria-nombre"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej: Electricidad"
@@ -346,11 +350,15 @@ function NuevoRubroButton() {
   );
 }
 
-function FusionarRubrosDialog({ rubros }: { rubros: RubroConAlias[] }) {
+function FusionarCategoriasDialog({
+  categorias,
+}: {
+  categorias: CategoriaConAlias[];
+}) {
   const [open, setOpen] = useState(false);
   const [origen, setOrigen] = useState('');
   const [destino, setDestino] = useState('');
-  const merge = useMergeRubros();
+  const merge = useMergeCategorias();
 
   const invalido = !origen || !destino || origen === destino;
 
@@ -361,7 +369,7 @@ function FusionarRubrosDialog({ rubros }: { rubros: RubroConAlias[] }) {
         setOpen(false);
         setOrigen('');
         setDestino('');
-        return 'Rubros fusionados.';
+        return 'Categorías fusionadas.';
       },
       error: (e) => (e as Error).message,
     });
@@ -377,9 +385,9 @@ function FusionarRubrosDialog({ rubros }: { rubros: RubroConAlias[] }) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Fusionar rubros</DialogTitle>
+          <DialogTitle>Fusionar categorías</DialogTitle>
           <DialogDescription>
-            El rubro origen desaparece: sus facturas, ventas y variantes pasan
+            La categoría origen desaparece: sus facturas, ventas y variantes pasan
             al destino. No se puede deshacer.
           </DialogDescription>
         </DialogHeader>
@@ -388,12 +396,12 @@ function FusionarRubrosDialog({ rubros }: { rubros: RubroConAlias[] }) {
             <Label>Origen (se elimina)</Label>
             <Select value={origen} onValueChange={setOrigen}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Rubro a absorber" />
+                <SelectValue placeholder="Categoría a absorber" />
               </SelectTrigger>
               <SelectContent>
-                {rubros.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.nombre}
+                {categorias.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -403,12 +411,12 @@ function FusionarRubrosDialog({ rubros }: { rubros: RubroConAlias[] }) {
             <Label>Destino (se conserva)</Label>
             <Select value={destino} onValueChange={setDestino}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Rubro que queda" />
+                <SelectValue placeholder="Categoría que queda" />
               </SelectTrigger>
               <SelectContent>
-                {rubros.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.nombre}
+                {categorias.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>

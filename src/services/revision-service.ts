@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 import type { RevisionItem } from '@/types/revision';
 import * as proveedorService from '@/services/proveedor-service';
-import * as rubroService from '@/services/rubro-service';
+import * as categoriaService from '@/services/categoria-service';
 
 export async function listPendientes(): Promise<RevisionItem[]> {
   const supabase = createClient();
@@ -103,34 +103,39 @@ export async function descartar(item: RevisionItem): Promise<void> {
   if (item.entidad_id) await confirmarFacturaSiListo(item.entidad_id);
 }
 
-/** Asigna un rubro existente a la factura en revision. */
-export async function asignarRubro(
+function rawCategoriaFromPayload(item: RevisionItem): string | undefined {
+  return item.payload.raw_categoria ?? item.payload.raw_rubro;
+}
+
+/** Asigna una categoría existente a la factura en revision. */
+export async function asignarCategoria(
   item: RevisionItem,
-  rubroId: string
+  categoriaId: string
 ): Promise<void> {
   const supabase = createClient();
   if (item.entidad_id) {
     await supabase
       .from('facturas')
-      .update({ rubro_id: rubroId })
+      .update({ rubro_id: categoriaId })
       .eq('id', item.entidad_id);
-    if (item.payload.raw_rubro) {
-      await rubroService.addAliasRubro(rubroId, item.payload.raw_rubro);
+    const raw = rawCategoriaFromPayload(item);
+    if (raw) {
+      await categoriaService.addAliasCategoria(categoriaId, raw);
     }
   }
-  await marcarResuelto(item.id, { rubro_id: rubroId });
+  await marcarResuelto(item.id, { categoria_id: categoriaId });
 }
 
-/** Crea un rubro nuevo y lo asigna a la factura. */
-export async function crearYAsignarRubro(
+/** Crea una categoría nueva y la asigna a la factura. */
+export async function crearYAsignarCategoria(
   item: RevisionItem,
   nombre: string
 ): Promise<void> {
-  const rubro = await rubroService.createRubro(nombre);
-  await asignarRubro(item, rubro.id);
+  const categoria = await categoriaService.createCategoria(nombre);
+  await asignarCategoria(item, categoria.id);
 }
 
-/** Omite la asignacion de rubro (rubro es opcional). */
-export async function descartarRubro(item: RevisionItem): Promise<void> {
+/** Omite la asignacion de categoria (es opcional). */
+export async function descartarCategoria(item: RevisionItem): Promise<void> {
   await marcarResuelto(item.id, { omitido: true }, 'descartado');
 }

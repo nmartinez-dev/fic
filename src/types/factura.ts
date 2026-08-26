@@ -13,7 +13,7 @@ export type Factura = {
   fecha_vencimiento: string | null;
   total: number;
   moneda: string;
-  rubro_id: string | null;
+  categoria_id: string | null;
   estado_pago: EstadoPago;
   estado: EstadoFactura;
   origen: OrigenFactura;
@@ -33,7 +33,7 @@ export type FacturaConSaldo = Factura & {
 /** Datos crudos extraidos de un archivo antes de resolver proveedor/dedupe. */
 export type FacturaExtraida = {
   proveedorNombre: string | null;
-  rubroNombre: string | null;
+  categoriaNombre: string | null;
   numero: string | null;
   fecha: string | null;
   total: number | null;
@@ -48,7 +48,7 @@ export const updateFacturaSchema = z.object({
   fecha_vencimiento: z.string().date().nullable().optional(),
   total: z.number().positive().optional(),
   proveedor_id: z.string().uuid().nullable().optional(),
-  rubro_id: z.string().uuid().nullable().optional(),
+  categoria_id: z.string().uuid().nullable().optional(),
 });
 
 export type UpdateFacturaInput = z.infer<typeof updateFacturaSchema>;

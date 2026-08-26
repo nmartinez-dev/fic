@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FeatureIcon } from '@/components/ui/feature-icon';
 import { useFacturas, useIngestFactura } from '@/hooks/use-facturas';
 import { useRevisionPendientes } from '@/hooks/use-revision';
-import { useRubrosConAlias } from '@/hooks/use-rubros';
+import { useCategoriasConAlias } from '@/hooks/use-categorias';
 import { formatCurrency, formatDate } from '@/lib/format';
 import {
   EstadoFacturaBadge,
@@ -23,14 +23,14 @@ export default function FacturasPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { data: facturas, isLoading } = useFacturas();
   const { data: revisionItems } = useRevisionPendientes();
-  const { data: rubros } = useRubrosConAlias();
+  const { data: categorias } = useCategoriasConAlias();
   const ingest = useIngestFactura();
 
-  const rubroPorId = useMemo(() => {
+  const categoriaPorId = useMemo(() => {
     const map = new Map<string, string>();
-    for (const r of rubros ?? []) map.set(r.id, r.nombre);
+    for (const c of categorias ?? []) map.set(c.id, c.nombre);
     return map;
-  }, [rubros]);
+  }, [categorias]);
 
   const facturasEnRevision = useMemo(
     () => (facturas ?? []).filter((f) => f.estado === 'en_revision').length,
@@ -111,7 +111,7 @@ export default function FacturasPage() {
               <tr>
                 <th className="px-4 py-3 font-medium">Número</th>
                 <th className="px-4 py-3 font-medium">Proveedor</th>
-                <th className="px-4 py-3 font-medium">Rubro</th>
+                <th className="px-4 py-3 font-medium">Categoría</th>
                 <th className="px-4 py-3 font-medium">Fecha</th>
                 <th className="px-4 py-3 text-right font-medium">Total</th>
                 <th className="px-4 py-3 text-right font-medium">Saldo</th>
@@ -133,9 +133,9 @@ export default function FacturasPage() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {f.rubro_id ? (
+                    {f.categoria_id ? (
                       <Badge variant="secondary">
-                        {rubroPorId.get(f.rubro_id) ?? '—'}
+                        {categoriaPorId.get(f.categoria_id) ?? '—'}
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground">—</span>

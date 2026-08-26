@@ -39,8 +39,10 @@ function areaForPath(pathname: string): Area | null {
       return 'facturas';
     case 'ordenes':
       return 'ordenes';
+    case 'categorias':
+      return 'categorias';
     case 'rubros':
-      return 'rubros';
+      return 'categorias';
     case 'precios':
       return 'precios';
     case 'vencimientos':
@@ -113,6 +115,14 @@ export async function proxy(request: NextRequest) {
   }
 
   // Guard por rol: nadie entra a un area que no le toca (defensa junto a RLS).
+  if (user && pathname.startsWith('/dashboard')) {
+    const redirectUrl = request.nextUrl.clone();
+    if (pathname === '/dashboard/rubros' || pathname.startsWith('/dashboard/rubros/')) {
+      redirectUrl.pathname = pathname.replace('/dashboard/rubros', '/dashboard/categorias');
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
   if (user && pathname.startsWith('/dashboard')) {
     const area = areaForPath(pathname);
     if (area && area !== 'dashboard') {

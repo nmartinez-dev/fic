@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import type { CategoriaMatch } from '@/types/categoria';
 import type { RevisionItem } from '@/types/revision';
 import {
   useAsignarProveedor,
@@ -13,17 +14,37 @@ import {
   useConfirmarDuplicado,
   useNoEsDuplicado,
   useDescartarRevision,
-  useAsignarRubro,
-  useCrearYAsignarRubro,
-  useDescartarRubro,
+  useAsignarCategoria,
+  useCrearYAsignarCategoria,
+  useDescartarCategoria,
 } from '@/hooks/use-revision';
 
 const TIPO_LABEL: Record<RevisionItem['tipo'], string> = {
   proveedor_ambiguo: 'Proveedor sin identificar',
   posible_duplicado: 'Posible duplicado',
   dato_incompleto: 'Datos incompletos',
-  rubro_ambiguo: 'Rubro sin identificar',
+  categoria_ambigua: 'Categoría sin identificar',
+  rubro_ambiguo: 'Categoría sin identificar',
 };
+
+type LegacyCategoriaMatch = CategoriaMatch & { rubro_id?: string };
+
+function rawCategoria(payload: RevisionItem['payload']): string | undefined {
+  return payload.raw_categoria ?? payload.raw_rubro;
+}
+
+function candidatosCategoria(payload: RevisionItem['payload']): CategoriaMatch[] {
+  const list = payload.categoria_candidatos ?? payload.rubro_candidatos ?? [];
+  return list.map((c) => {
+    const legacy = c as LegacyCategoriaMatch;
+    return {
+      categoria_id: legacy.categoria_id ?? legacy.rubro_id ?? '',
+      nombre: legacy.nombre,
+      score: legacy.score,
+      via: legacy.via,
+    };
+  });
+}
 
 export function RevisionCard({ item }: { item: RevisionItem }) {
   const asignar = useAsignarProveedor();
@@ -31,13 +52,15 @@ export function RevisionCard({ item }: { item: RevisionItem }) {
   const confirmarDup = useConfirmarDuplicado();
   const noDup = useNoEsDuplicado();
   const descartar = useDescartarRevision();
-  const asignarRubro = useAsignarRubro();
-  const crearRubro = useCrearYAsignarRubro();
-  const descartarRubro = useDescartarRubro();
+  const asignarCategoria = useAsignarCategoria();
+  const crearCategoria = useCrearYAsignarCategoria();
+  const descartarCategoria = useDescartarCategoria();
   const [nuevoNombre, setNuevoNombre] = useState(
     item.payload.raw_nombre ?? ''
   );
-  const [nuevoRubro, setNuevoRubro] = useState(item.payload.raw_rubro ?? '');
+  const [nuevaCategoria, setNuevaCategoria] = useState(
+    rawCategoria(item.payload) ?? ''
+  );
 
   const busy =
     asignar.isPending ||
@@ -45,9 +68,9 @@ export function RevisionCard({ item }: { item: RevisionItem }) {
     confirmarDup.isPending ||
     noDup.isPending ||
     descartar.isPending ||
-    asignarRubro.isPending ||
-    crearRubro.isPending ||
-    descartarRubro.isPending;
+    asignarCategoria.isPending ||
+    crearCategoria.isPending ||
+    descartarCategoria.isPending;
 
   const run = (p: Promise<unknown>, ok: string) =>
     toast.promise(p, { loading: 'Guardando...', success: ok, error: (e) => (e as Error).message });
@@ -198,22 +221,27 @@ export function RevisionCard({ item }: { item: RevisionItem }) {
           </>
         );
 
-      case 'rubro_ambiguo':
+      case 'categoria_ambigua':
+      case 'rubro_ambiguo': {
+        const raw = rawCategoria(item.payload);
+        const candidatos = candidatosCategoria(item.payload);
+
         return (
           <>
             <p className="text-sm text-muted-foreground">
-              La factura trae el rubro{' '}
+              La factura trae la categoría{' '}
               <span className="font-medium text-foreground">
-                &ldquo;{item.payload.raw_rubro ?? 'desconocido'}&rdquo;
+                &ldquo;{raw ?? 'desconocida'}&rdquo;
               </span>
-              . ¿A qué rubro corresponde? (La factura ya puede estar confirmada.)
+              . ¿A qué categoría corresponde? (La factura ya puede estar
+              confirmada.)
             </p>
 
-            {(item.payload.rubro_candidatos?.length ?? 0) > 0 && (
+            {candidatos.length > 0 && (
               <div className="space-y-2">
-                {item.payload.rubro_candidatos!.map((c) => (
+                {candidatos.map((c) => (
                   <div
-                    key={c.rubro_id}
+                    key={c.categoria_id}
                     className="flex items-center justify-between rounded-lg border px-3 py-2"
                   >
                     <span className="text-sm">
@@ -227,12 +255,15 @@ export function RevisionCard({ item }: { item: RevisionItem }) {
                       disabled={busy}
                       onClick={() =>
                         run(
-                          asignarRubro.mutateAsync({ item, arg: c.rubro_id }),
+                          asignarCategoria.mutateAsync({
+                            item,
+                            arg: c.categoria_id,
+                          }),
                           `Asignado a ${c.nombre}.`
                         )
                       }
                     >
-                      Es este
+                      Es esta
                     </Button>
                   </div>
                 ))}
@@ -242,21 +273,24 @@ export function RevisionCard({ item }: { item: RevisionItem }) {
             <div className="flex items-end gap-2">
               <div className="flex-1 space-y-1">
                 <label className="text-xs text-muted-foreground">
-                  O crear un rubro nuevo
+                  O crear una categoría nueva
                 </label>
                 <Input
-                  value={nuevoRubro}
-                  onChange={(e) => setNuevoRubro(e.target.value)}
-                  placeholder="Nombre del rubro"
+                  value={nuevaCategoria}
+                  onChange={(e) => setNuevaCategoria(e.target.value)}
+                  placeholder="Nombre de la categoría"
                 />
               </div>
               <Button
                 variant="outline"
-                disabled={busy || nuevoRubro.trim().length < 2}
+                disabled={busy || nuevaCategoria.trim().length < 2}
                 onClick={() =>
                   run(
-                    crearRubro.mutateAsync({ item, arg: nuevoRubro.trim() }),
-                    'Rubro creado y asignado.'
+                    crearCategoria.mutateAsync({
+                      item,
+                      arg: nuevaCategoria.trim(),
+                    }),
+                    'Categoría creada y asignada.'
                   )
                 }
               >
@@ -270,8 +304,8 @@ export function RevisionCard({ item }: { item: RevisionItem }) {
               disabled={busy}
               onClick={() =>
                 run(
-                  descartarRubro.mutateAsync({ item, arg: undefined }),
-                  'Rubro omitido.'
+                  descartarCategoria.mutateAsync({ item, arg: undefined }),
+                  'Categoría omitida.'
                 )
               }
             >
@@ -279,6 +313,7 @@ export function RevisionCard({ item }: { item: RevisionItem }) {
             </Button>
           </>
         );
+      }
 
       default: {
         const _exhaustive: never = item.tipo;

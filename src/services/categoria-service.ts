@@ -1,7 +1,35 @@
 import { createClient } from '@/lib/supabase/client';
-import type { GastoPorRubro, RubroConAlias } from '@/types/rubro';
+import type { CategoriaConAlias, GastoPorCategoria } from '@/types/categoria';
 
-export async function listRubrosConAlias(): Promise<RubroConAlias[]> {
+type RubroAliasRow = {
+  id: string;
+  rubro_id: string;
+  alias: string;
+  created_at: string;
+};
+
+type RubroRow = {
+  id: string;
+  nombre: string;
+  created_at: string;
+  rubro_alias: RubroAliasRow[];
+};
+
+function mapCategoria(row: RubroRow): CategoriaConAlias {
+  return {
+    id: row.id,
+    nombre: row.nombre,
+    created_at: row.created_at,
+    categoria_alias: (row.rubro_alias ?? []).map((a) => ({
+      id: a.id,
+      categoria_id: a.rubro_id,
+      alias: a.alias,
+      created_at: a.created_at,
+    })),
+  };
+}
+
+export async function listCategoriasConAlias(): Promise<CategoriaConAlias[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('rubros')
@@ -10,28 +38,36 @@ export async function listRubrosConAlias(): Promise<RubroConAlias[]> {
   if (error) throw new Error(error.message);
 
   const [facturasMap, ventasMap] = await Promise.all([
-    countByRubro('facturas'),
-    countByRubro('ventas'),
+    countByCategoria('facturas'),
+    countByCategoria('ventas'),
   ]);
 
-  return ((data ?? []) as unknown as RubroConAlias[]).map((r) => ({
-    ...r,
+  return ((data ?? []) as unknown as RubroRow[]).map((r) => ({
+    ...mapCategoria(r),
     facturas_count: facturasMap.get(r.id) ?? 0,
     ventas_count: ventasMap.get(r.id) ?? 0,
   }));
 }
 
-export async function listGastoPorRubro(): Promise<GastoPorRubro[]> {
+export async function listGastoPorCategoria(): Promise<GastoPorCategoria[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('v_gasto_por_rubro')
     .select('*')
     .order('total', { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []) as GastoPorRubro[];
+
+  return (data ?? []).map((row) => ({
+    categoria_id: row.rubro_id as string | null,
+    categoria: row.rubro as string,
+    facturas: row.facturas as number,
+    total: row.total as number,
+  }));
 }
 
-export async function createRubro(nombre: string): Promise<{ id: string; nombre: string }> {
+export async function createCategoria(
+  nombre: string
+): Promise<{ id: string; nombre: string }> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('rubros')
@@ -42,19 +78,19 @@ export async function createRubro(nombre: string): Promise<{ id: string; nombre:
   return data as { id: string; nombre: string };
 }
 
-export async function addAliasRubro(
-  rubroId: string,
+export async function addAliasCategoria(
+  categoriaId: string,
   alias: string
 ): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase
     .from('rubro_alias')
-    .insert({ rubro_id: rubroId, alias });
+    .insert({ rubro_id: categoriaId, alias });
   if (error) throw new Error(error.message);
 }
 
-/** Fusiona el rubro `origen` dentro de `destino` (RPC atómica). */
-export async function mergeRubros(
+/** Fusiona la categoría `origen` dentro de `destino` (RPC atómica). */
+export async function mergeCategorias(
   origen: string,
   destino: string
 ): Promise<void> {
@@ -66,7 +102,7 @@ export async function mergeRubros(
   if (error) throw new Error(error.message);
 }
 
-export async function updateRubro(id: string, nombre: string): Promise<void> {
+export async function updateCategoria(id: string, nombre: string): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase
     .from('rubros')
@@ -75,7 +111,7 @@ export async function updateRubro(id: string, nombre: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-export async function deleteRubro(id: string): Promise<void> {
+export async function deleteCategoria(id: string): Promise<void> {
   const supabase = createClient();
 
   const { count: facturasCount, error: fErr } = await supabase
@@ -92,7 +128,7 @@ export async function deleteRubro(id: string): Promise<void> {
 
   if ((facturasCount ?? 0) > 0 || (ventasCount ?? 0) > 0) {
     throw new Error(
-      'Este rubro tiene facturas o ventas asociadas. Fusionalo con otro antes de eliminarlo.'
+      'Esta categoría tiene facturas o ventas asociadas. Fusionala con otra antes de eliminarla.'
     );
   }
 
@@ -100,7 +136,7 @@ export async function deleteRubro(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
-async function countByRubro(
+async function countByCategoria(
   table: 'facturas' | 'ventas'
 ): Promise<Map<string, number>> {
   const supabase = createClient();

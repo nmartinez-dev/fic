@@ -1,12 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { FacturaExtraida } from '@/types/factura';
 import type { ProveedorMatch } from '@/types/proveedor';
-import type { RubroMatch } from '@/types/rubro';
+import type { CategoriaMatch } from '@/types/categoria';
 import { buildHashDedup } from '@/lib/ingest/dedup';
-import { normalizeProveedorNombre, normalizeRubroNombre } from '@/lib/ingest/extract';
+import {
+  normalizeProveedorNombre,
+  normalizeCategoriaNombre,
+} from '@/lib/ingest/extract';
 import { addDays, formatISO } from 'date-fns';
 
-/** Score minimo de similitud para asignar proveedor o rubro sin intervencion humana. */
+/** Score minimo de similitud para asignar proveedor o categoria sin intervencion humana. */
 export const AUTO_MATCH_THRESHOLD = 0.55;
 
 export type IngestResultado = {
@@ -17,6 +20,13 @@ export type IngestResultado = {
 
 type Db = SupabaseClient;
 
+type MatchRubroRow = {
+  rubro_id: string;
+  nombre: string;
+  score: number;
+  via: 'nombre' | 'alias';
+};
+
 async function matchProveedor(
   db: Db,
   nombre: string
@@ -26,17 +36,25 @@ async function matchProveedor(
   return data as ProveedorMatch[];
 }
 
-async function matchRubro(db: Db, nombre: string): Promise<RubroMatch[]> {
+async function matchCategoria(
+  db: Db,
+  nombre: string
+): Promise<CategoriaMatch[]> {
   const { data, error } = await db.rpc('match_rubro', { p_nombre: nombre });
   if (error || !data) return [];
-  return data as RubroMatch[];
+  return (data as MatchRubroRow[]).map((row) => ({
+    categoria_id: row.rubro_id,
+    nombre: row.nombre,
+    score: row.score,
+    via: row.via,
+  }));
 }
 
 /**
  * Orquesta la ingesta de una factura ya extraida:
  *  1. dedupe (misma factura cargada dos veces)
  *  2. entity resolution del proveedor (pg_trgm)
- *  3. entity resolution del rubro (pg_trgm, no bloqueante)
+ *  3. entity resolution de la categoria (pg_trgm, no bloqueante)
  *  4. chequeo de datos criticos faltantes
  * Lo que no se resuelve con certeza NO se adivina: la factura queda
  * 'en_revision' y se crean items en la cola de revision.
@@ -50,8 +68,8 @@ export async function ingestFactura(
   const nombreProveedor = extraida.proveedorNombre
     ? normalizeProveedorNombre(extraida.proveedorNombre)
     : null;
-  const nombreRubro = extraida.rubroNombre
-    ? normalizeRubroNombre(extraida.rubroNombre)
+  const nombreCategoria = extraida.categoriaNombre
+    ? normalizeCategoriaNombre(extraida.categoriaNombre)
     : null;
 
   const hash = buildHashDedup(
@@ -92,31 +110,34 @@ export async function ingestFactura(
     motivosRevision.push('proveedor_ambiguo');
   }
 
-  // 3) Entity resolution del rubro (opcional; no bloquea confirmacion).
-  let rubroId: string | null = null;
-  let candidatosRubro: RubroMatch[] = [];
-  let rubroAmbiguoItem: {
-    tipo: 'rubro_ambiguo';
+  // 3) Entity resolution de la categoria (opcional; no bloquea confirmacion).
+  let categoriaId: string | null = null;
+  let candidatosCategoria: CategoriaMatch[] = [];
+  let categoriaAmbiguaItem: {
+    tipo: 'categoria_ambigua';
     entidad: string;
     entidad_id: string | null;
     titulo: string;
-    payload: { raw_rubro: string | null | undefined; rubro_candidatos: RubroMatch[] };
+    payload: {
+      raw_categoria: string | null | undefined;
+      categoria_candidatos: CategoriaMatch[];
+    };
   } | null = null;
 
-  if (nombreRubro) {
-    candidatosRubro = await matchRubro(db, nombreRubro);
-    const mejorRubro = candidatosRubro[0];
-    if (mejorRubro && mejorRubro.score >= AUTO_MATCH_THRESHOLD) {
-      rubroId = mejorRubro.rubro_id;
+  if (nombreCategoria) {
+    candidatosCategoria = await matchCategoria(db, nombreCategoria);
+    const mejorCategoria = candidatosCategoria[0];
+    if (mejorCategoria && mejorCategoria.score >= AUTO_MATCH_THRESHOLD) {
+      categoriaId = mejorCategoria.categoria_id;
     } else {
-      rubroAmbiguoItem = {
-        tipo: 'rubro_ambiguo',
+      categoriaAmbiguaItem = {
+        tipo: 'categoria_ambigua',
         entidad: 'factura',
         entidad_id: null,
-        titulo: `No se reconoció el rubro "${extraida.rubroNombre ?? 'desconocido'}"`,
+        titulo: `No se reconoció la categoría "${extraida.categoriaNombre ?? 'desconocida'}"`,
         payload: {
-          raw_rubro: extraida.rubroNombre,
-          rubro_candidatos: candidatosRubro,
+          raw_categoria: extraida.categoriaNombre,
+          categoria_candidatos: candidatosCategoria,
         },
       };
     }
@@ -149,7 +170,7 @@ export async function ingestFactura(
     .insert({
       proveedor_id: proveedorId,
       raw_proveedor_nombre: nombreProveedor ?? extraida.proveedorNombre,
-      rubro_id: rubroId,
+      rubro_id: categoriaId,
       numero: extraida.numero,
       fecha: extraida.fecha,
       fecha_vencimiento: fechaVencimiento,
@@ -174,10 +195,10 @@ export async function ingestFactura(
       .insert({ proveedor_id: proveedorId, alias: nombreProveedor })
       .then(undefined, () => undefined);
   }
-  if (rubroId && nombreRubro) {
+  if (categoriaId && nombreCategoria) {
     await db
       .from('rubro_alias')
-      .insert({ rubro_id: rubroId, alias: nombreRubro })
+      .insert({ rubro_id: categoriaId, alias: nombreCategoria })
       .then(undefined, () => undefined);
   }
 
@@ -190,10 +211,10 @@ export async function ingestFactura(
     if (item) await db.from('revision_queue').insert(item as never);
   }
 
-  // Rubro ambiguo: revision paralela, no bloquea confirmacion.
-  if (rubroAmbiguoItem) {
+  // Categoria ambigua: revision paralela, no bloquea confirmacion.
+  if (categoriaAmbiguaItem) {
     await db.from('revision_queue').insert({
-      ...rubroAmbiguoItem,
+      ...categoriaAmbiguaItem,
       entidad_id: facturaId,
     } as never);
   }

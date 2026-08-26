@@ -25,11 +25,11 @@ import {
 } from '@/components/ui/select';
 import { useUpdateFactura } from '@/hooks/use-facturas';
 import { useProveedores } from '@/hooks/use-proveedores';
-import { useRubrosConAlias } from '@/hooks/use-rubros';
+import { useCategoriasConAlias } from '@/hooks/use-categorias';
 import type { FacturaConSaldo, UpdateFacturaInput } from '@/types/factura';
 
 const SIN_PROVEEDOR = '__none__';
-const SIN_RUBRO = '__none__';
+const SIN_CATEGORIA = '__none__';
 
 export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
   const [open, setOpen] = useState(false);
@@ -42,11 +42,13 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
   const [proveedorId, setProveedorId] = useState(
     factura.proveedor_id ?? SIN_PROVEEDOR
   );
-  const [rubroId, setRubroId] = useState(factura.rubro_id ?? SIN_RUBRO);
+  const [categoriaId, setCategoriaId] = useState(
+    factura.categoria_id ?? SIN_CATEGORIA
+  );
 
   const update = useUpdateFactura();
   const { data: proveedores } = useProveedores();
-  const { data: rubros } = useRubrosConAlias();
+  const { data: categorias } = useCategoriasConAlias();
 
   useEffect(() => {
     if (!open) return;
@@ -55,7 +57,7 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
     setFechaVencimiento(factura.fecha_vencimiento ?? '');
     setTotal(String(factura.total));
     setProveedorId(factura.proveedor_id ?? SIN_PROVEEDOR);
-    setRubroId(factura.rubro_id ?? SIN_RUBRO);
+    setCategoriaId(factura.categoria_id ?? SIN_CATEGORIA);
   }, [open, factura]);
 
   const totalNum = Number(total);
@@ -68,7 +70,7 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
       fecha_vencimiento: fechaVencimiento || null,
       total: totalNum,
       proveedor_id: proveedorId === SIN_PROVEEDOR ? null : proveedorId,
-      rubro_id: rubroId === SIN_RUBRO ? null : rubroId,
+      categoria_id: categoriaId === SIN_CATEGORIA ? null : categoriaId,
     };
 
     toast.promise(update.mutateAsync({ id: factura.id, input }), {
@@ -100,7 +102,7 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
         <DialogHeader>
           <DialogTitle>Editar factura</DialogTitle>
           <DialogDescription>
-            Corregí número, fechas, total, proveedor o rubro. Los cambios
+            Corregí número, fechas, total, proveedor o categoría. Los cambios
             recalculan el saldo y la huella anti-duplicados.
           </DialogDescription>
         </DialogHeader>
@@ -161,16 +163,16 @@ export function EditarFacturaDialog({ factura }: { factura: FacturaConSaldo }) {
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label>Rubro</Label>
-            <Select value={rubroId} onValueChange={setRubroId}>
+            <Label>Categoría</Label>
+            <Select value={categoriaId} onValueChange={setCategoriaId}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sin rubro" />
+                <SelectValue placeholder="Sin categoría" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={SIN_RUBRO}>Sin rubro</SelectItem>
-                {(rubros ?? []).map((r) => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.nombre}
+                <SelectItem value={SIN_CATEGORIA}>Sin categoría</SelectItem>
+                {(categorias ?? []).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -19,9 +19,9 @@ export const queryKeys = {
   ordenesCompra: (estado?: string) => ['ordenes', estado ?? 'todas'] as const,
   ordenesCompraAll: ['ordenes'] as const,
 
-  rubros: ['rubros'] as const,
-  gastoPorRubro: (desde: string, hasta: string) =>
-    ['rubros', 'gasto', desde, hasta] as const,
+  categorias: ['categorias'] as const,
+  gastoPorCategoria: (desde: string, hasta: string) =>
+    ['categorias', 'gasto', desde, hasta] as const,
 
   vencimientos: (desde: string, hasta: string) =>
     ['vencimientos', desde, hasta] as const,

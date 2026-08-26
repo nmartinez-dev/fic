@@ -23,7 +23,7 @@ function useRevisionMutation<T>(
       qc.invalidateQueries({ queryKey: queryKeys.revisionQueue });
       qc.invalidateQueries({ queryKey: queryKeys.facturasAll });
       qc.invalidateQueries({ queryKey: queryKeys.proveedores });
-      qc.invalidateQueries({ queryKey: queryKeys.rubros });
+      qc.invalidateQueries({ queryKey: queryKeys.categorias });
     },
   });
 }
@@ -56,18 +56,20 @@ export function useDescartarRevision() {
   return useRevisionMutation<void>((item) => revisionService.descartar(item));
 }
 
-export function useAsignarRubro() {
-  return useRevisionMutation<string>((item, rubroId) =>
-    revisionService.asignarRubro(item, rubroId)
+export function useAsignarCategoria() {
+  return useRevisionMutation<string>((item, categoriaId) =>
+    revisionService.asignarCategoria(item, categoriaId)
   );
 }
 
-export function useCrearYAsignarRubro() {
+export function useCrearYAsignarCategoria() {
   return useRevisionMutation<string>((item, nombre) =>
-    revisionService.crearYAsignarRubro(item, nombre)
+    revisionService.crearYAsignarCategoria(item, nombre)
   );
 }
 
-export function useDescartarRubro() {
-  return useRevisionMutation<void>((item) => revisionService.descartarRubro(item));
+export function useDescartarCategoria() {
+  return useRevisionMutation<void>((item) =>
+    revisionService.descartarCategoria(item)
+  );
 }

@@ -58,6 +58,12 @@ export async function PATCH(req: Request, context: RouteContext) {
       );
     }
 
+    const { categoria_id, ...restPatch } = patch;
+    const dbPatch: Record<string, unknown> = { ...restPatch };
+    if (categoria_id !== undefined) {
+      dbPatch.rubro_id = categoria_id;
+    }
+
     const proveedorId =
       patch.proveedor_id !== undefined
         ? patch.proveedor_id
@@ -76,7 +82,7 @@ export async function PATCH(req: Request, context: RouteContext) {
 
     const { data, error } = await db
       .from('facturas')
-      .update({ ...patch, hash_dedup })
+      .update({ ...dbPatch, hash_dedup })
       .eq('id', id)
       .select('*')
       .single();

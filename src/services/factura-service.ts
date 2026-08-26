@@ -2,6 +2,14 @@ import { createClient } from '@/lib/supabase/client';
 import type { FacturaConSaldo, UpdateFacturaInput } from '@/types/factura';
 import type { IngestResultado } from '@/lib/ingest/ingest';
 
+function mapFacturaConSaldo(row: Record<string, unknown>): FacturaConSaldo {
+  const { rubro_id, ...rest } = row;
+  return {
+    ...rest,
+    categoria_id: (rubro_id as string | null) ?? null,
+  } as FacturaConSaldo;
+}
+
 export async function listFacturas(): Promise<FacturaConSaldo[]> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -9,7 +17,9 @@ export async function listFacturas(): Promise<FacturaConSaldo[]> {
     .select('*')
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as FacturaConSaldo[];
+  return (data ?? []).map((row) =>
+    mapFacturaConSaldo(row as Record<string, unknown>)
+  );
 }
 
 async function parseJson(res: Response): Promise<Record<string, unknown>> {

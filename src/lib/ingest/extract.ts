@@ -142,11 +142,11 @@ export function normalizeProveedorNombre(raw: string): string {
     .trim();
 }
 
-function extractRubroNombre(text: string): string | null {
+function extractCategoriaNombre(text: string): string | null {
   const fromLabel = extractKeyValue(text, [
-    'rubro',
     'categoría',
     'categoria',
+    'rubro',
     'tipo',
     'línea',
     'linea',
@@ -156,10 +156,10 @@ function extractRubroNombre(text: string): string | null {
   return null;
 }
 
-/** Limpia prefijos antes de matchear rubro. */
-export function normalizeRubroNombre(raw: string): string {
+/** Limpia prefijos antes de matchear categoría. */
+export function normalizeCategoriaNombre(raw: string): string {
   return raw
-    .replace(/^(rubro|categor[ií]a|tipo|l[ií]nea)\s*:\s*/i, '')
+    .replace(/^(categor[ií]a|rubro|tipo|l[ií]nea)\s*:\s*/i, '')
     .replace(/\t+/g, ' ')
     .trim();
 }
@@ -170,7 +170,7 @@ export function extractFromText(
   origen: OrigenFactura
 ): FacturaExtraida {
   const proveedorNombre = extractProveedorNombre(text);
-  const rubroNombre = extractRubroNombre(text);
+  const categoriaNombre = extractCategoriaNombre(text);
   const numero = extractNumero(text);
   const fecha = extractFecha(text);
   const total = extractTotal(text);
@@ -183,7 +183,7 @@ export function extractFromText(
 
   return {
     proveedorNombre,
-    rubroNombre,
+    categoriaNombre,
     numero,
     fecha,
     total,

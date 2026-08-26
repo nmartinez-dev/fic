@@ -1,10 +1,12 @@
 import type { ProveedorMatch } from '@/types/proveedor';
-import type { RubroMatch } from '@/types/rubro';
+import type { CategoriaMatch } from '@/types/categoria';
 
 export type TipoRevision =
   | 'proveedor_ambiguo'
   | 'posible_duplicado'
   | 'dato_incompleto'
+  | 'categoria_ambigua'
+  /** @deprecated Usar `categoria_ambigua`. Se elimina al aplicar migración 012. */
   | 'rubro_ambiguo';
 
 export type EstadoRevision = 'pendiente' | 'resuelto' | 'descartado';
@@ -26,8 +28,11 @@ export type RevisionItem = {
 export type RevisionPayload = {
   raw_nombre?: string;
   candidatos?: ProveedorMatch[];
+  raw_categoria?: string;
+  categoria_candidatos?: CategoriaMatch[];
+  /** Compatibilidad con items creados antes del rename. */
   raw_rubro?: string;
-  rubro_candidatos?: RubroMatch[];
+  rubro_candidatos?: CategoriaMatch[];
   factura_original?: string;
   motivo?: string;
   camposFaltantes?: string[];

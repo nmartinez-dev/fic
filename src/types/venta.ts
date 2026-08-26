@@ -5,7 +5,7 @@ export type Venta = {
   codigo: string | null;
   fecha: string | null;
   producto: string | null;
-  rubro_id: string | null;
+  categoria_id: string | null;
   cantidad: number | null;
   precio_unitario: number | null;
   total: number | null;

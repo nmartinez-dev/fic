@@ -28,7 +28,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/proveedores', label: 'Proveedores', icon: Building2, area: 'proveedores' },
   { href: '/dashboard/facturas', label: 'Facturas', icon: FileText, area: 'facturas' },
   { href: '/dashboard/ordenes', label: 'Órdenes', icon: ClipboardList, area: 'ordenes' },
-  { href: '/dashboard/rubros', label: 'Rubros', icon: Tags, area: 'rubros' },
+  { href: '/dashboard/categorias', label: 'Categorías', icon: Tags, area: 'categorias' },
   { href: '/dashboard/precios', label: 'Precios', icon: Tag, area: 'precios' },
   { href: '/dashboard/vencimientos', label: 'Vencimientos', icon: CalendarClock, area: 'vencimientos' },
   { href: '/dashboard/revision', label: 'Revisión', icon: Inbox, area: 'revision' },
