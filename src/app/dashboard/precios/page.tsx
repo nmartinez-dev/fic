@@ -32,7 +32,7 @@ export default function PreciosPage() {
     [avisos]
   );
 
-  const precios = data?.precios ?? [];
+  const precios = useMemo(() => data?.precios ?? [], [data?.precios]);
   const fechaLista = data?.fechaLista ?? null;
 
   const filtrados = useMemo(() => {
