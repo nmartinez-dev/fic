@@ -21,8 +21,11 @@ export type Factura = {
   updated_at: string;
 };
 
-export type FacturaConProveedor = Factura & {
-  proveedor: { id: string; nombre: string } | null;
+/** Fila de la vista v_facturas: factura + proveedor + pagado/saldo derivados. */
+export type FacturaConSaldo = Factura & {
+  proveedor_nombre: string | null;
+  pagado: number;
+  saldo: number;
 };
 
 /** Datos crudos extraidos de un archivo antes de resolver proveedor/dedupe. */
