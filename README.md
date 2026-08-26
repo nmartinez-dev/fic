@@ -59,10 +59,11 @@ Completar `.env.local` con las claves del proyecto Supabase. Opcionales:
 3. Copiar **Project URL**, **anon key** y **service role key** al `.env.local`.
 4. En **Storage**, crear buckets privados `facturas` y `ordenes` (adjuntos de
    facturas y órdenes).
-5. Ejecutar el seed:
+5. Ejecutar el seed (sincroniza usuarios demo; agrega `-- --with-data` en base vacía):
 
 ```bash
 npm run seed
+# npm run seed -- --with-data   # datos de ejemplo (solo si no hay proveedores)
 npm run dev
 ```
 
